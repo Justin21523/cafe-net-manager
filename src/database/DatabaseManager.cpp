@@ -137,18 +137,20 @@ bool DatabaseManager::initializeSchema() {
         R"(CREATE TABLE IF NOT EXISTS seat_sessions (
             id INTEGER PRIMARY KEY AUTOINCREMENT,
             seat_id INTEGER NOT NULL,
+            customer_id INTEGER,
             customer_name TEXT,
             guest_count INTEGER DEFAULT 1,
             start_time DATETIME NOT NULL,
             end_time DATETIME,
-            mode TEXT DEFAULT 'Cafe', -- Cafe, InternetCafe, Study
+            mode TEXT DEFAULT 'Cafe',
             hourly_rate INTEGER DEFAULT 0,
             minimum_charge INTEGER DEFAULT 0,
             status TEXT DEFAULT 'Active',
             note TEXT,
             created_at DATETIME DEFAULT CURRENT_TIMESTAMP,
             updated_at DATETIME DEFAULT CURRENT_TIMESTAMP,
-            FOREIGN KEY (seat_id) REFERENCES seats(id) ON DELETE CASCADE
+            FOREIGN KEY (seat_id) REFERENCES seats(id) ON DELETE CASCADE,
+            FOREIGN KEY (customer_id) REFERENCES customers(id) ON DELETE SET NULL
         ))",
 
         // Orders table
@@ -192,7 +194,20 @@ bool DatabaseManager::initializeSchema() {
             status TEXT DEFAULT 'Completed',
             created_at DATETIME DEFAULT CURRENT_TIMESTAMP,
             FOREIGN KEY (order_id) REFERENCES orders(id) ON DELETE CASCADE
-        ))"
+        ))",
+
+        // Customer table
+        R"(CREATE TABLE IF NOT EXISTS customers (
+            id INTEGER PRIMARY KEY AUTOINCREMENT,
+            name TEXT NOT NULL,
+            phone TEXT,
+            email TEXT,
+            notes TEXT,
+            total_visits INTEGER DEFAULT 0,
+            total_spent INTEGER DEFAULT 0,
+            created_at DATETIME DEFAULT CURRENT_TIMESTAMP,
+            last_visit DATETIME
+        ))",
     };
 
     // Execute each statement

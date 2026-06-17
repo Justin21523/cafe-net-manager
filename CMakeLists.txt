@@ -18,73 +18,79 @@ add_executable(cafe-net-manager
     
     src/widgets/MainWindow.cpp
     include/widgets/MainWindow.h
-    src/widgets/SeatMapView.cpp         # Added
-    include/widgets/SeatMapView.h       # Added
-    src/widgets/SeatGraphicsItem.cpp    # Added
-    include/widgets/SeatGraphicsItem.h  # Added
-    src/widgets/SeatDetailPanel.cpp     # Added
-    include/widgets/SeatDetailPanel.h   # Added
-
-    src/core/AppContext.cpp
-    include/core/AppContext.h
-    
-    src/database/DatabaseManager.cpp
-    include/database/DatabaseManager.h
-    src/database/SeatRepository.cpp     # Added
-    include/database/SeatRepository.h   # Added
-    
-    src/models/Seat.cpp                 # Added
-    include/models/Seat.h               # Added
-    
-    src/services/SeatService.cpp        # Added
-    include/services/SeatService.h      # Added
-    
-    src/models/SeatSession.cpp
-    include/models/SeatSession.h
-    src/database/SeatSessionRepository.cpp
-    include/database/SeatSessionRepository.h
-    src/services/SeatSessionService.cpp
-    include/services/SeatSessionService.h
-
-    src/models/MenuCategory.cpp
-    include/models/MenuCategory.h
-    src/models/MenuItem.cpp
-    include/models/MenuItem.h
-    src/database/MenuRepository.cpp
-    include/database/MenuRepository.h
-    src/services/MenuService.cpp
-    include/services/MenuService.h
-    src/widgets/MenuItemCard.cpp
-    include/widgets/MenuItemCard.h
+    src/widgets/SeatMapView.cpp
+    include/widgets/SeatMapView.h
+    src/widgets/SeatGraphicsItem.cpp
+    include/widgets/SeatGraphicsItem.h
+    src/widgets/SeatDetailPanel.cpp
+    include/widgets/SeatDetailPanel.h
     src/widgets/MenuBrowserWidget.cpp
     include/widgets/MenuBrowserWidget.h
-
-    src/models/Order.cpp
-    include/models/Order.h
-    src/models/OrderItem.cpp
-    include/models/OrderItem.h
-    src/database/OrderRepository.cpp
-    include/database/OrderRepository.h
-    src/services/OrderService.cpp
-    include/services/OrderService.h
+    src/widgets/MenuItemCard.cpp
+    include/widgets/MenuItemCard.h
     src/widgets/CartWidget.cpp
     include/widgets/CartWidget.h
     src/widgets/KitchenBoardWidget.cpp
     include/widgets/KitchenBoardWidget.h
     src/widgets/OrderCardWidget.cpp
     include/widgets/OrderCardWidget.h
-    src/models/Payment.cpp
-    include/models/Payment.h
-    src/database/PaymentRepository.cpp
-    include/database/PaymentRepository.h
-    src/widgets/CheckoutDialog.cpp
-    include/widgets/CheckoutDialog.h
+    src/widgets/DashboardWidget.cpp
+    include/widgets/DashboardWidget.h
     src/widgets/AdminPage.cpp
     include/widgets/AdminPage.h
     src/widgets/SeatManagementWidget.cpp
     include/widgets/SeatManagementWidget.h
     src/widgets/MenuManagementWidget.cpp
-    include/widgets/MenuManagementWidget.h            
+    include/widgets/MenuManagementWidget.h
+    src/widgets/CheckoutDialog.cpp
+    include/widgets/CheckoutDialog.h
+    
+    src/core/AppContext.cpp
+    include/core/AppContext.h
+    
+    src/database/DatabaseManager.cpp
+    include/database/DatabaseManager.h
+    src/database/SeatRepository.cpp
+    include/database/SeatRepository.h
+    src/database/SeatSessionRepository.cpp
+    include/database/SeatSessionRepository.h
+    src/database/MenuRepository.cpp
+    include/database/MenuRepository.h
+    src/database/OrderRepository.cpp
+    include/database/OrderRepository.h
+    src/database/PaymentRepository.cpp
+    include/database/PaymentRepository.h
+    
+    src/models/Seat.cpp
+    include/models/Seat.h
+    src/models/SeatSession.cpp
+    include/models/SeatSession.h
+    src/models/MenuCategory.cpp
+    include/models/MenuCategory.h
+    src/models/MenuItem.cpp
+    include/models/MenuItem.h
+    src/models/Order.cpp
+    include/models/Order.h
+    src/models/OrderItem.cpp
+    include/models/OrderItem.h
+    src/models/Payment.cpp
+    include/models/Payment.h
+    
+    src/services/SeatService.cpp
+    include/services/SeatService.h
+    src/services/SeatSessionService.cpp
+    include/services/SeatSessionService.h
+    src/services/MenuService.cpp
+    include/services/MenuService.h
+    src/services/OrderService.cpp
+    include/services/OrderService.h
+    src/models/Customer.cpp
+    include/models/Customer.h
+    src/database/CustomerRepository.cpp
+    include/database/CustomerRepository.h
+    src/widgets/CustomerSearchWidget.cpp
+    include/widgets/CustomerSearchWidget.h
+    
     src/utils/Logger.cpp
     include/utils/Logger.h
 )

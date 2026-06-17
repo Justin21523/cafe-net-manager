@@ -3,6 +3,7 @@
 #include "services/SeatService.h"
 #include "models/Seat.h"
 #include "models/Order.h"
+#include "database/DatabaseManager.h"
 #include <QMainWindow>
 #include <vector>
 
@@ -18,6 +19,8 @@ class CartWidget;
 class OrderService;
 class KitchenBoardWidget;
 class AdminPage;
+class DashboardWidget;
+class DatabaseManager; 
 
 class MainWindow : public QMainWindow {
     Q_OBJECT
@@ -32,6 +35,7 @@ public:
 
     void setSelectedSeat(int seatId, int sessionId);
     void showAdminPage();
+    void setDatabaseManager(DatabaseManager *dbManager);
 
 private slots:
     void handleStartSession(int seatId);
@@ -39,7 +43,7 @@ private slots:
     void refreshSeatMap();
     void handleItemAddedToCart(const MenuItem &item);
     void handleCheckout(const Order &order);
-
+    
 private:
     void setupUI();
     
@@ -56,4 +60,5 @@ private:
     int m_selectedSessionId = -1;
     KitchenBoardWidget *m_kitchenBoardWidget;
     AdminPage *m_adminPage;
+    DashboardWidget *m_dashboardWidget;
 };

@@ -19,27 +19,42 @@ OrderCardWidget::OrderCardWidget(const Order &order, QWidget *parent)
     updateWaitTime(); // Initial update
 }
 
+OrderCardWidget::~OrderCardWidget() {
+    if (m_timer) {
+        m_timer->stop();
+        m_timer->deleteLater();
+    }
+}
+
 void OrderCardWidget::setupUI(){
-    setStyleSheet("background-color: #fff; border: 1px solid #ccc; border-radius: 5px; padding: 10px;");
+    setStyleSheet("background-color: #fff; border: 2px solid #ccc; border-radius: 8px; padding: 10px;");
+    setMinimumWidth(200);
+    setMaximumWidth(300);
 
     QVBoxLayout *layout = new QVBoxLayout(this);
+    layout->setSpacing(8);
 
-    // Header: Order Number & Seat
-    QHBoxLayout *headerLayout = new QHBoxLayout();
+    // Header: Order Number
     m_orderNumLabel = new QLabel(m_order.orderNumber, this);
     QFont boldFont = m_orderNumLabel->font();
+    boldFont.setPointSize(12);
     boldFont.setBold(true);
     m_orderNumLabel->setFont(boldFont);
-    headerLayout->addWidget(m_orderNumLabel);
-    
-    m_seatLabel = new QLabel(QString("Seat: %1").arg(m_order.seatId), this);
-    headerLayout->addStretch();
-    headerLayout->addWidget(m_seatLabel);
-    layout->addLayout(headerLayout);
+    layout->addWidget(m_orderNumLabel);
+
+    // Seat Info
+    m_seatLabel = new QLabel(QString("Seat ID: %1").arg(m_order.seatId), this);
+    layout->addWidget(m_seatLabel);
+
+    // Horizontal line
+    QFrame *line = new QFrame(this);
+    line->setFrameShape(QFrame::HLine);
+    line->setFrameShadow(QFrame::Sunken);
+    layout->addWidget(line);
 
     // Wait Time
-    m_waitTimeLabel = new QLabel("Waiting: 0m", this);
-    m_waitTimeLabel->setStyleSheet("color: red; font-weight: bold;");
+    m_waitTimeLabel = new QLabel("Waiting: 0m 0s", this);
+    m_waitTimeLabel->setStyleSheet("color: red; font-weight: bold; font-size: 14px;");
     layout->addWidget(m_waitTimeLabel);
 
     // Status Combo Box
@@ -62,12 +77,14 @@ void OrderCardWidget::setupUI(){
     }
     m_statusCombo->setCurrentIndex(currentIndex);
 
-    connect(m_statusCombo, QOverload<int>::of(&QComboBox::currentIndexChanged), this, [this](int index) {
+    connect(m_statusCombo, QOverload<int>::of(&QComboBox::currentIndexChanged), 
+            this, [this](int index) {
         OrderStatus newStatus = static_cast<OrderStatus>(m_statusCombo->itemData(index).toInt());
         emit statusChanged(m_order.id, newStatus);
     });
 
     layout->addWidget(m_statusCombo);
+    layout->addStretch();
 }
 
 void OrderCardWidget::updateWaitTime() {

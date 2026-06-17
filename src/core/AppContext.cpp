@@ -8,6 +8,7 @@
 #include "services/MenuService.h"
 #include "database/OrderRepository.h"
 #include "services/OrderService.h"
+#include "database/CustomerRepository.h"
 #include "utils/Logger.h"
 
 AppContext::AppContext(QObject *parent)
@@ -27,6 +28,8 @@ AppContext::AppContext(QObject *parent)
 
     m_orderRepository = new OrderRepository(m_databaseManager);
     m_orderService = new OrderService(m_orderRepository);
+
+    m_customerRepository = new CustomerRepository(m_databaseManager);
 
     Logger::info("AppContext initialized.");
 }
@@ -54,4 +57,8 @@ MenuService* AppContext::menuService() const {
 
 OrderService* AppContext::orderService() const {
     return m_orderService;
+}
+
+CustomerRepository* AppContext::customerRepository() const {
+    return m_customerRepository;
 }

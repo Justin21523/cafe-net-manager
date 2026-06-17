@@ -12,7 +12,8 @@ class OrderCardWidget : public QWidget {
 
 public:
     explicit OrderCardWidget(const Order &order, QWidget *parent = nullptr);
-
+    ~OrderCardWidget();
+    
 signals:
     void statusChanged(int orderId, OrderStatus newStatus);
 

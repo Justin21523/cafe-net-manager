@@ -11,6 +11,7 @@ class MenuRepository;
 class MenuService;
 class OrderRepository;
 class OrderService;
+class CustomerRepository;
 
 class AppContext : public QObject {
     Q_OBJECT
@@ -24,6 +25,7 @@ public:
     SeatSessionService* seatSessionService() const;
     MenuService* menuService() const;
     OrderService* orderService() const;
+    CustomerRepository* customerRepository() const;
 
     private:
     DatabaseManager *m_databaseManager;
@@ -35,4 +37,5 @@ public:
     MenuService *m_menuService;
     OrderRepository *m_orderRepository;
     OrderService *m_orderService;
+    CustomerRepository *m_customerRepository;
 };

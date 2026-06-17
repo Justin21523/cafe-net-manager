@@ -19,29 +19,38 @@ KitchenBoardWidget::KitchenBoardWidget(OrderService *service, QWidget *parent)
 
 void KitchenBoardWidget::setupUI() {
     QHBoxLayout *mainLayout = new QHBoxLayout(this);
+    mainLayout->setSpacing(10);
 
     // Helper lambda to create a column
     auto createColumn = [&](const QString &title, QVBoxLayout *&layout) {
         QWidget *columnWidget = new QWidget(this);
+        columnWidget->setStyleSheet("background-color: #2b2b2b; border-radius: 5px;");
         QVBoxLayout *colLayout = new QVBoxLayout(columnWidget);
+        colLayout->setContentsMargins(5, 5, 5, 5);
         
         QLabel *titleLabel = new QLabel(title, columnWidget);
         QFont font = titleLabel->font();
-        font.setPointSize(14);
+        font.setPointSize(12);
         font.setBold(true);
+        titleLabel->setFont(font);
         titleLabel->setAlignment(Qt::AlignCenter);
+        titleLabel->setStyleSheet("color: white; padding: 10px; background-color: #444; border-radius: 3px;");
         colLayout->addWidget(titleLabel);
-        colLayout->addWidget(new QFrame()); // Separator
 
         QScrollArea *scrollArea = new QScrollArea(columnWidget);
         scrollArea->setWidgetResizable(true);
+        scrollArea->setFrameShape(QFrame::NoFrame);
+        scrollArea->setStyleSheet("background-color: transparent;");
+        
         QWidget *scrollContent = new QWidget();
         layout = new QVBoxLayout(scrollContent);
+        layout->setSpacing(10);
         layout->addStretch();
+        
         scrollArea->setWidget(scrollContent);
         colLayout->addWidget(scrollArea);
 
-        mainLayout->addWidget(columnWidget);
+        mainLayout->addWidget(columnWidget, 1); // Equal stretch
     };
 
     createColumn("Pending", m_pendingLayout);
@@ -94,8 +103,10 @@ void KitchenBoardWidget::clearColumns() {
 }
 
 void KitchenBoardWidget::handleOrderStatusChanged(int orderId, OrderStatus newStatus) {
+    Logger::info("Order " + QString::number(orderId) + " status changed to " + QString::number(static_cast<int>(newStatus)));
     if (m_service) {
-        m_service->updateOrderStatus(orderId, newStatus);
-        refreshBoard(); // Refresh to move cards to correct columns
+        if (m_service->updateOrderStatus(orderId, newStatus)) {
+            refreshBoard();
+        }
     }
 }

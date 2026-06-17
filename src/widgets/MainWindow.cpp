@@ -11,8 +11,9 @@
 #include "widgets/KitchenBoardWidget.h"
 #include "widgets/CheckoutDialog.h"
 #include "widgets/AdminPage.h"
-#include "widgets/SeatManagementWidget.h"
-#include "widgets/MenuManagementWidget.h"
+#include "widgets/DashboardWidget.h"
+#include "database/DatabaseManager.h"
+
 #include <QSplitter>
 #include <QStatusBar>
 #include <QTabWidget>
@@ -32,7 +33,7 @@ void MainWindow::setupUI() {
     resize(1200, 800);
 
     QSplitter *splitter = new QSplitter(Qt::Horizontal, this);
-
+    
     m_seatMapView = new SeatMapView(splitter);
     
     // Create Tab Widget for the right panel
@@ -57,6 +58,14 @@ void MainWindow::setupUI() {
                 setSelectedSeat(seat.id, -1); 
             });
     statusBar()->showMessage("Ready");
+}
+
+void MainWindow::setDatabaseManager(DatabaseManager *dbManager) {
+    if (dbManager) {
+        // Create Dashboard as first tab
+        m_dashboardWidget = new DashboardWidget(dbManager, m_rightPanelTabs);
+        m_rightPanelTabs->insertTab(0, m_dashboardWidget, "Dashboard");
+    }
 }
 
 void MainWindow::initializeSeatMap(const std::vector<Seat> &seats) {
@@ -87,6 +96,10 @@ void MainWindow::setServices(SeatService *seatService, SeatSessionService *sessi
         
         connect(m_cartWidget, &CartWidget::orderSubmitted, this, [this]() {
             statusBar()->showMessage("Order submitted successfully!", 3000);
+            // Refresh kitchen board after order submission
+            if (m_kitchenBoardWidget) {
+                m_kitchenBoardWidget->refreshBoard();
+            }
         });
 
         m_kitchenBoardWidget = new KitchenBoardWidget(orderService, m_rightPanelTabs);
@@ -105,12 +118,18 @@ void MainWindow::setSelectedSeat(int seatId, int sessionId) {
 void MainWindow::handleStartSession(int seatId) {
     if (m_sessionService && m_sessionService->startSession(seatId)) {
         refreshSeatMap();
+        if (m_dashboardWidget) {
+            m_dashboardWidget->refreshData();
+        }
     }
 }
 
 void MainWindow::handleEndSession(int seatId) {
     if (m_sessionService && m_sessionService->endSession(seatId)) {
         refreshSeatMap();
+        if (m_dashboardWidget) {
+            m_dashboardWidget->refreshData();
+        }
     }
 }
 
@@ -152,3 +171,4 @@ void MainWindow::showAdminPage() {
     }
     m_adminPage->show();
 }
+
