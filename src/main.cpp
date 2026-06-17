@@ -29,7 +29,8 @@ int main(int argc, char *argv[]) {
     std::vector<Seat> seats = seatService->loadAllSeats();
 
     MainWindow window;
-    window.setServices(seatService, sessionService, menuService); // Updated
+    OrderService *orderService = context->orderService();
+    window.setServices(seatService, sessionService, menuService, orderService);
     window.initializeSeatMap(seats);
     window.show();
 

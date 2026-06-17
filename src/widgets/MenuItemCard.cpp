@@ -13,8 +13,7 @@ MenuItemCard::MenuItemCard(const MenuItem &item, QWidget *parent)
     setCursor(Qt::PointingHandCursor);
 }
 
-void MenuItemCard::setupUI() {
-    setFrameStyle(QFrame::Box | QFrame::Raised);
+void MenuItemCard::setupUI() {  
     setStyleSheet("background-color: #f9f9f9; border: 1px solid #ddd; border-radius: 5px;");
 
     QVBoxLayout *layout = new QVBoxLayout(this);
@@ -40,10 +39,3 @@ void MenuItemCard::setupUI() {
     });
 }
 
-// Override mousePressEvent to emit signal when card is clicked
-void MenuItemCard::mousePressEvent(QMouseEvent *event) {
-    if (event->button() == Qt::LeftButton) {
-        emit addToCartRequested(m_item);
-    }
-    QWidget::mousePressEvent(event);
-}

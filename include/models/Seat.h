@@ -2,7 +2,6 @@
 
 #include <QString>
 #include <QDateTime>
-#include <vector>
 
 // Enum class provides strong typing. 
 // You cannot accidentally compare SeatStatus with an integer.

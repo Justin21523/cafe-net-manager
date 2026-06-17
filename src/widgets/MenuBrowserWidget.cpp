@@ -62,7 +62,7 @@ void MenuBrowserWidget::loadCategories() {
     
     // Auto select first category if exists
     if (!m_categoryButtons.empty()) {
-        m_categoryButtons.first()->click();
+        m_categoryButtons.front()->click(); 
     }
 }
 
@@ -78,6 +78,8 @@ void MenuBrowserWidget::loadItemsForCategory(int categoryId) {
     for (const auto &item : items) {
         if (itemsInRow % 3 == 0) {
             currentRowLayout = new QHBoxLayout();
+            currentRowLayout->setSpacing(5); // Add some spacing between cards
+            // 插入到最後一個位置（在 stretch 之前）
             m_itemsLayout->insertLayout(m_itemsLayout->count() - 1, currentRowLayout);
         }
 
@@ -90,18 +92,15 @@ void MenuBrowserWidget::loadItemsForCategory(int categoryId) {
 }
 
 void MenuBrowserWidget::clearItemCards() {
-    // Delete all item cards and row layouts
-    // Note: Deleting the container's children is easier
-    QList<QWidget*> children = m_itemsContainer->findChildren<QWidget*>();
-    for (QWidget *child : children) {
-        // Don't delete the layout itself, just the widgets (cards)
-        if (dynamic_cast<MenuItemCard*>(child)) {
-            delete child;
-        }
+    // 只刪除 MenuItemCard widgets，不刪除 row layouts
+    QList<MenuItemCard*> cards = m_itemsContainer->findChildren<MenuItemCard*>();
+    for (MenuItemCard *card : cards) {
+        delete card;
     }
-    // Also delete the row layouts we created
-    QList<QLayout*> layouts = m_itemsContainer->findChildren<QLayout*>();
-    for (QLayout *layout : layouts) {
+    
+    // 刪除所有 QHBoxLayout（row layouts）
+    QList<QHBoxLayout*> rowLayouts = m_itemsContainer->findChildren<QHBoxLayout*>();
+    for (QHBoxLayout *layout : rowLayouts) {
         delete layout;
     }
 }

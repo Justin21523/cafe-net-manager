@@ -6,6 +6,8 @@
 #include "services/SeatSessionService.h"
 #include "services/MenuService.h"
 #include "models/MenuItem.h"
+#include "widgets/CartWidget.h"
+#include "services/OrderService.h"
 
 #include <QSplitter>
 #include <QStatusBar>
@@ -54,9 +56,11 @@ void MainWindow::initializeSeatMap(const std::vector<Seat> &seats) {
 }
 
 // ... add setServices ...
-void MainWindow::setServices(SeatService *seatService, SeatSessionService *sessionService, MenuService *menuService) {
+void MainWindow::setServices(SeatService *seatService, SeatSessionService *sessionService, 
+                             MenuService *menuService, OrderService *orderService) {
     m_seatService = seatService;
     m_sessionService = sessionService;
+    m_orderService = orderService;
 
     connect(m_seatDetailPanel, &SeatDetailPanel::startSessionRequested, this, &MainWindow::handleStartSession);
     connect(m_seatDetailPanel, &SeatDetailPanel::endSessionRequested, this, &MainWindow::handleEndSession);
@@ -67,6 +71,23 @@ void MainWindow::setServices(SeatService *seatService, SeatSessionService *sessi
         
         connect(m_menuBrowserWidget, &MenuBrowserWidget::itemAddedToCart, 
                 this, &MainWindow::handleItemAddedToCart);
+    }
+
+    if (orderService) {
+        m_cartWidget = new CartWidget(orderService, m_rightPanelTabs);
+        m_rightPanelTabs->addTab(m_cartWidget, "Cart");
+        
+        connect(m_cartWidget, &CartWidget::orderSubmitted, this, [this]() {
+            statusBar()->showMessage("Order submitted successfully!", 3000);
+        });
+    }
+}
+
+void MainWindow::setSelectedSeat(int seatId, int sessionId) {
+    m_selectedSeatId = seatId;
+    m_selectedSessionId = sessionId;
+    if (m_cartWidget) {
+        // Pass seat info to cart widget if needed
     }
 }
 
@@ -92,7 +113,11 @@ void MainWindow::refreshSeatMap() {
 }
 
 void MainWindow::handleItemAddedToCart(const MenuItem &item) {
-    // Phase 7 will implement the cart logic. For now, just show a message.
-    statusBar()->showMessage("Added to cart: " + item.name + " ($" + QString::number(item.price / 100.0) + ")", 3000);
+    if (m_orderService) {
+        m_orderService->addToCart(item);
+        if (m_cartWidget) {
+            m_cartWidget->refreshCart();
+        }
+        statusBar()->showMessage("Added to cart: " + item.name, 3000);
+    }
 }
-

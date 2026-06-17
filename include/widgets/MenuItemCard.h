@@ -1,11 +1,11 @@
 #pragma once
 
 #include <QWidget>
-#include <QMouseEvent>
 #include <qevent.h>
 #include "models/MenuItem.h"
 
 class QLabel;
+class QPushButton;
 
 class MenuItemCard : public QWidget {
     Q_OBJECT
@@ -15,7 +15,6 @@ public:
 
 signals:
     void addToCartRequested(const MenuItem &item);
-    void mousePressEvent(QMouseEvent *event);
 
 private:
     void setupUI();
