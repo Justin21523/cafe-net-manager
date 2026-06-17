@@ -94,17 +94,25 @@ add_executable(cafe-net-manager
     src/utils/Logger.cpp
     include/utils/Logger.h
 
-    # V2.0 Navigation Refactor
-    src/widgets/SidebarWidget.cpp
-    include/widgets/SidebarWidget.h
-    src/pages/DashboardPage.cpp
-    include/pages/DashboardPage.h
-    src/pages/FloorPlanPage.cpp
-    include/pages/FloorPlanPage.h
-    src/pages/PosOrderPage.cpp
-    include/pages/PosOrderPage.h
-    src/pages/KitchenPage.cpp
-    include/pages/KitchenPage.h
+    # V2.0 Pages & Sidebar
+    src/widgets/SidebarWidget.cpp include/widgets/SidebarWidget.h
+    src/pages/DashboardPage.cpp include/pages/DashboardPage.h
+    src/pages/FloorPlanPage.cpp include/pages/FloorPlanPage.h
+    src/pages/PosOrderPage.cpp include/pages/PosOrderPage.h
+    src/pages/KitchenPage.cpp include/pages/KitchenPage.h
+    
+    # V2.1 Floor Plan Editor (Graphics)
+    src/graphics/FloorPlanScene.cpp include/graphics/FloorPlanScene.h
+    src/graphics/FloorPlanItem.cpp include/graphics/FloorPlanItem.h
+    src/graphics/SeatItem.cpp include/graphics/SeatItem.h
+    src/graphics/WallItem.cpp include/graphics/WallItem.h
+    src/graphics/CounterItem.cpp include/graphics/CounterItem.h
+    
+    # V2.1 Floor Plan Editor (Widgets)
+    src/widgets/FloorPlanView.cpp include/widgets/FloorPlanView.h
+    src/widgets/ToolPalette.cpp include/widgets/ToolPalette.h
+    src/widgets/InspectorPanel.cpp include/widgets/InspectorPanel.h
+    
 )
 
 target_include_directories(cafe-net-manager PRIVATE
