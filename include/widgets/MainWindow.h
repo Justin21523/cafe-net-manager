@@ -15,6 +15,7 @@ class MenuService;
 class MenuItem; // Forward declaration
 class CartWidget;
 class OrderService;
+class KitchenBoardWidget;
 
 class MainWindow : public QMainWindow {
     Q_OBJECT
@@ -24,9 +25,9 @@ public:
     ~MainWindow();
 
     void initializeSeatMap(const std::vector<Seat> &seats);
-    void setServices(SeatService *seatService, SeatSessionService *sessionService, MenuService *menuService);
     void setServices(SeatService *seatService, SeatSessionService *sessionService, 
-                     MenuService *menuService, OrderService *orderService);
+                     MenuService *menuService, OrderService *orderService); // 確認簽名
+
     void setSelectedSeat(int seatId, int sessionId);
 
 private slots:
@@ -45,9 +46,9 @@ private:
 
     SeatService *m_seatService = nullptr;
     SeatSessionService *m_sessionService = nullptr;
-    
     CartWidget *m_cartWidget;
     OrderService *m_orderService = nullptr;
     int m_selectedSeatId = -1;
     int m_selectedSessionId = -1;
+    KitchenBoardWidget *m_kitchenBoardWidget;
 };

@@ -90,3 +90,11 @@ bool OrderService::submitOrder(int seatId, int sessionId) {
     clearCart();
     return true;
 }
+
+bool OrderService::updateOrderStatus(int orderId, OrderStatus status) {
+    return m_repository->updateOrderStatus(orderId, status);
+}
+
+std::vector<Order> OrderService::getActiveOrders() {
+    return m_repository->getAllActiveOrders();
+}

@@ -8,6 +8,7 @@
 #include "models/MenuItem.h"
 #include "widgets/CartWidget.h"
 #include "services/OrderService.h"
+#include "widgets/KitchenBoardWidget.h"
 
 #include <QSplitter>
 #include <QStatusBar>
@@ -80,6 +81,9 @@ void MainWindow::setServices(SeatService *seatService, SeatSessionService *sessi
         connect(m_cartWidget, &CartWidget::orderSubmitted, this, [this]() {
             statusBar()->showMessage("Order submitted successfully!", 3000);
         });
+        
+        m_kitchenBoardWidget = new KitchenBoardWidget(orderService, m_rightPanelTabs);
+        m_rightPanelTabs->addTab(m_kitchenBoardWidget, "Kitchen Board");
     }
 }
 

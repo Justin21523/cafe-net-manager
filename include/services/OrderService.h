@@ -1,6 +1,7 @@
 #pragma once
 
 #include "models/MenuItem.h"
+#include "models/Order.h"
 #include <vector>
 #include <map>
 
@@ -26,6 +27,8 @@ public:
 
     // Order operations
     bool submitOrder(int seatId, int sessionId);
+    bool updateOrderStatus(int orderId, OrderStatus status);
+    std::vector<Order> getActiveOrders();
 
 private:
     OrderRepository *m_repository;

@@ -85,3 +85,66 @@ std::vector<Order> OrderRepository::getOrdersBySeatId(int seatId) {
     }
     return orders;
 }
+
+std::vector<Order> OrderRepository::getAllActiveOrders() {
+    std::vector<Order> orders;
+    QSqlQuery query(m_dbManager->database());
+    // Fetch orders that are not yet Paid or Cancelled
+    query.prepare("SELECT id, session_id, seat_id, order_number, status, subtotal, discount, service_charge, total, created_at "
+                  "FROM orders WHERE status NOT IN ('Paid', 'Cancelled') ORDER BY created_at ASC");
+
+    if (!query.exec()) {
+        Logger::error("Failed to fetch active orders: " + query.lastError().text());
+        return orders;
+    }
+
+    while (query.next()) {
+        Order order;
+        order.id = query.value("id").toInt();
+        order.sessionId = query.value("session_id").toInt();
+        order.seatId = query.value("seat_id").toInt();
+        order.orderNumber = query.value("order_number").toString();
+        
+        QString statusStr = query.value("status").toString();
+        if (statusStr == "Draft") order.status = OrderStatus::Draft;
+        else if (statusStr == "Submitted") order.status = OrderStatus::Submitted;
+        else if (statusStr == "Accepted") order.status = OrderStatus::Accepted;
+        else if (statusStr == "Preparing") order.status = OrderStatus::Preparing;
+        else if (statusStr == "Ready") order.status = OrderStatus::Ready;
+        else if (statusStr == "Served") order.status = OrderStatus::Served;
+
+        order.subtotal = query.value("subtotal").toInt();
+        order.discount = query.value("discount").toInt();
+        order.serviceCharge = query.value("service_charge").toInt();
+        order.total = query.value("total").toInt();
+        order.createdAt = query.value("created_at").toDateTime();
+        orders.push_back(order);
+    }
+    return orders;
+}
+
+bool OrderRepository::updateOrderStatus(int orderId, OrderStatus status) {
+    QSqlQuery query(m_dbManager->database());
+    query.prepare("UPDATE orders SET status = :status, updated_at = CURRENT_TIMESTAMP WHERE id = :id");
+    
+    QString statusStr;
+    switch (status) {
+        case OrderStatus::Draft: statusStr = "Draft"; break;
+        case OrderStatus::Submitted: statusStr = "Submitted"; break;
+        case OrderStatus::Accepted: statusStr = "Accepted"; break;
+        case OrderStatus::Preparing: statusStr = "Preparing"; break;
+        case OrderStatus::Ready: statusStr = "Ready"; break;
+        case OrderStatus::Served: statusStr = "Served"; break;
+        case OrderStatus::Paid: statusStr = "Paid"; break;
+        case OrderStatus::Cancelled: statusStr = "Cancelled"; break;
+    }
+
+    query.bindValue(":status", statusStr);
+    query.bindValue(":id", orderId);
+
+    if (!query.exec()) {
+        Logger::error("Failed to update order status: " + query.lastError().text());
+        return false;
+    }
+    return true;
+}
