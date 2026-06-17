@@ -31,7 +31,8 @@ public:
 
     void initializeSeatMap(const std::vector<Seat> &seats);
     void setServices(SeatService *seatService, SeatSessionService *sessionService, 
-                     MenuService *menuService, OrderService *orderService); // 確認簽名
+                     MenuService *menuService, OrderService *orderService, 
+                     SeatRepository *seatRepository); // Add this
 
     void setSelectedSeat(int seatId, int sessionId);
     void showAdminPage();
@@ -43,7 +44,8 @@ private slots:
     void refreshSeatMap();
     void handleItemAddedToCart(const MenuItem &item);
     void handleCheckout(const Order &order);
-    
+    void handleSeatPositionChanged(int seatId, int x, int y);
+
 private:
     void setupUI();
     
@@ -61,4 +63,5 @@ private:
     KitchenBoardWidget *m_kitchenBoardWidget;
     AdminPage *m_adminPage;
     DashboardWidget *m_dashboardWidget;
+    SeatRepository *m_seatRepository = nullptr;
 };

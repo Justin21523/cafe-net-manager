@@ -30,7 +30,9 @@ AppContext::AppContext(QObject *parent)
     m_orderService = new OrderService(m_orderRepository);
 
     m_customerRepository = new CustomerRepository(m_databaseManager);
-
+    
+    m_seatRepository = new SeatRepository(m_databaseManager);
+    
     Logger::info("AppContext initialized.");
 }
 
@@ -61,4 +63,8 @@ OrderService* AppContext::orderService() const {
 
 CustomerRepository* AppContext::customerRepository() const {
     return m_customerRepository;
+}
+
+SeatRepository* AppContext::seatRepository() const {
+    return m_seatRepository;
 }

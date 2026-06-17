@@ -3,9 +3,12 @@
 #include <QPen>
 #include <QBrush>
 #include <QFont>
+#include <QCursor>
 
 SeatGraphicsItem::SeatGraphicsItem(const Seat &seat, QGraphicsItem *parent)
     : QGraphicsObject(parent), m_seat(seat) {
+    setPos(m_seat.x, m_seat.y);
+    setEditMode(false); // Default to View Mode
     // Enable selection and focus for mouse interaction
     setFlag(QGraphicsItem::ItemIsSelectable, true);
     setFlag(QGraphicsItem::ItemIsFocusable, true);
@@ -66,4 +69,27 @@ QColor SeatGraphicsItem::getStatusColor(SeatStatus status) const {
         case SeatStatus::Disabled:  return QColor(105, 105, 105); // Dim Gray
         default: return Qt::white;
     }
+}
+
+void SeatGraphicsItem::setEditMode(bool enabled) {
+    m_isEditMode = enabled;
+    
+    if (m_isEditMode) {
+        // Edit Mode: Can move, but selection is handled differently if needed
+        setFlag(QGraphicsItem::ItemIsMovable, true);
+        setFlag(QGraphicsItem::ItemIsSelectable, false);
+        setCursor(Qt::OpenHandCursor);
+        setOpacity(0.8); // Visual cue that it's editable
+    } else {
+        // View Mode: Can select, cannot move
+        setFlag(QGraphicsItem::ItemIsMovable, false);
+        setFlag(QGraphicsItem::ItemIsSelectable, true);
+        setCursor(Qt::ArrowCursor);
+        setOpacity(1.0);
+    }
+    update();
+}
+
+bool SeatGraphicsItem::isEditMode() const {
+    return m_isEditMode;
 }

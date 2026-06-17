@@ -26,6 +26,7 @@ public:
     MenuService* menuService() const;
     OrderService* orderService() const;
     CustomerRepository* customerRepository() const;
+    SeatRepository* seatRepository() const;
 
     private:
     DatabaseManager *m_databaseManager;

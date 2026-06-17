@@ -31,7 +31,9 @@ int main(int argc, char *argv[]) {
     MainWindow window;
     OrderService *orderService = context->orderService();
     window.setDatabaseManager(dbManager);  // Add this line
-    window.setServices(seatService, sessionService, menuService, orderService);
+    SeatRepository *seatRepo = context->seatRepository(); 
+    
+    window.setServices(seatService, sessionService, menuService, orderService, seatRepo);
     window.initializeSeatMap(seats);
     window.show();
 

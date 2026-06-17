@@ -13,6 +13,7 @@
 #include "widgets/AdminPage.h"
 #include "widgets/DashboardWidget.h"
 #include "database/DatabaseManager.h"
+#include "database/SeatRepository.h"
 
 #include <QSplitter>
 #include <QStatusBar>
@@ -57,6 +58,9 @@ void MainWindow::setupUI() {
                 // 這裡需要取得 session ID，簡化起見先用 -1
                 setSelectedSeat(seat.id, -1); 
             });
+    connect(m_seatMapView, &SeatMapView::seatPositionChanged, 
+            this, &MainWindow::handleSeatPositionChanged);
+    
     statusBar()->showMessage("Ready");
 }
 
@@ -74,10 +78,12 @@ void MainWindow::initializeSeatMap(const std::vector<Seat> &seats) {
 
 // ... add setServices ...
 void MainWindow::setServices(SeatService *seatService, SeatSessionService *sessionService, 
-                             MenuService *menuService, OrderService *orderService) {
+                             MenuService *menuService, OrderService *orderService,
+                             SeatRepository *seatRepository) {
     m_seatService = seatService;
     m_sessionService = sessionService;
     m_orderService = orderService;
+    m_seatRepository = seatRepository; // Store it
 
     connect(m_seatDetailPanel, &SeatDetailPanel::startSessionRequested, this, &MainWindow::handleStartSession);
     connect(m_seatDetailPanel, &SeatDetailPanel::endSessionRequested, this, &MainWindow::handleEndSession);
@@ -172,3 +178,8 @@ void MainWindow::showAdminPage() {
     m_adminPage->show();
 }
 
+void MainWindow::handleSeatPositionChanged(int seatId, int x, int y) {
+    if (m_seatRepository) {
+        m_seatRepository->updateSeatPosition(seatId, x, y);
+    }
+}

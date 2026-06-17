@@ -66,3 +66,17 @@ bool SeatRepository::updateStatus(int seatId, SeatStatus status) {
     }
     return true;
 }
+
+bool SeatRepository::updateSeatPosition(int seatId, int x, int y) {
+    QSqlQuery query(m_dbManager->database());
+    query.prepare("UPDATE seats SET x = :x, y = :y, updated_at = CURRENT_TIMESTAMP WHERE id = :id");
+    query.bindValue(":x", x);
+    query.bindValue(":y", y);
+    query.bindValue(":id", seatId);
+
+    if (!query.exec()) {
+        Logger::error("Failed to update seat position: " + query.lastError().text());
+        return false;
+    }
+    return true;
+}

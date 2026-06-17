@@ -15,8 +15,11 @@ public:
 
     const Seat& seatData() const;
     void updateStatus(SeatStatus newStatus);
+    void setEditMode(bool enabled);
+    bool isEditMode() const;
 
 private:
     Seat m_seat;
+    bool m_isEditMode = false;    
     QColor getStatusColor(SeatStatus status) const;
 };

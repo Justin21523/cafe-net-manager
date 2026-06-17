@@ -15,6 +15,7 @@ public:
     std::vector<Seat> getAllSeats();
 
     bool updateStatus(int seatId, SeatStatus status);
+    bool updateSeatPosition(int seatId, int x, int y);
 
 private:
     DatabaseManager *m_dbManager;
