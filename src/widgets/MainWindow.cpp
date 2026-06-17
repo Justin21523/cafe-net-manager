@@ -10,6 +10,9 @@
 #include "services/OrderService.h"
 #include "widgets/KitchenBoardWidget.h"
 #include "widgets/CheckoutDialog.h"
+#include "widgets/AdminPage.h"
+#include "widgets/SeatManagementWidget.h"
+#include "widgets/MenuManagementWidget.h"
 #include <QSplitter>
 #include <QStatusBar>
 #include <QTabWidget>
@@ -139,4 +142,13 @@ void MainWindow::handleCheckout(const Order &order) {
         // Process payment
         statusBar()->showMessage("Payment completed!", 3000);
     }
+}
+
+// 在 MainWindow 中加入選單或按鈕來開啟 Admin Page
+void MainWindow::showAdminPage() {
+    if (!m_adminPage) {
+        m_adminPage = new AdminPage(this);
+        // 這裡可以設定為獨立視窗或新的分頁
+    }
+    m_adminPage->show();
 }

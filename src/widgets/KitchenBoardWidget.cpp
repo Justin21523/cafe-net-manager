@@ -1,6 +1,7 @@
 #include "widgets/KitchenBoardWidget.h"
 #include "widgets/OrderCardWidget.h"
 #include "services/OrderService.h"
+#include "utils/Logger.h"
 
 #include <QVBoxLayout>
 #include <QHBoxLayout>
@@ -54,6 +55,7 @@ void KitchenBoardWidget::refreshBoard() {
     if (!m_service) return;
 
     std::vector<Order> orders = m_service->getActiveOrders();
+    Logger::info("Kitchen Board: Found " + QString::number(orders.size()) + " orders");
 
     for (const auto &order : orders) {
         OrderCardWidget *card = new OrderCardWidget(order);
@@ -71,6 +73,8 @@ void KitchenBoardWidget::refreshBoard() {
         if (targetLayout) {
             // Insert before the stretch
             targetLayout->insertWidget(targetLayout->count() - 1, card);
+        } else {
+            Logger::warning("Order " + order.orderNumber + " has unknown status");
         }
     }
 }

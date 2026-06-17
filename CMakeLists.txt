@@ -73,7 +73,18 @@ add_executable(cafe-net-manager
     include/widgets/KitchenBoardWidget.h
     src/widgets/OrderCardWidget.cpp
     include/widgets/OrderCardWidget.h
-        
+    src/models/Payment.cpp
+    include/models/Payment.h
+    src/database/PaymentRepository.cpp
+    include/database/PaymentRepository.h
+    src/widgets/CheckoutDialog.cpp
+    include/widgets/CheckoutDialog.h
+    src/widgets/AdminPage.cpp
+    include/widgets/AdminPage.h
+    src/widgets/SeatManagementWidget.cpp
+    include/widgets/SeatManagementWidget.h
+    src/widgets/MenuManagementWidget.cpp
+    include/widgets/MenuManagementWidget.h            
     src/utils/Logger.cpp
     include/utils/Logger.h
 )

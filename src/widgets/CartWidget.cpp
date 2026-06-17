@@ -58,21 +58,34 @@ void CartWidget::refreshCart() {
         const auto &item = items[i];
         m_cartTable->insertRow(i);
 
+        // Item Name
         m_cartTable->setItem(i, 0, new QTableWidgetItem(item.menuItem.name));
 
+        // Quantity SpinBox
         QSpinBox *spinBox = new QSpinBox(this);
         spinBox->setRange(1, 99);
         spinBox->setValue(item.quantity);
-        connect(spinBox, QOverload<int>::of(&QSpinBox::valueChanged), this, [this, i](int value) {
-            handleQuantityChanged(i);
+        spinBox->setProperty("row", i); // Store row index
+        
+        // 使用 lambda 連接，捕獲 menuItemId
+        connect(spinBox, QOverload<int>::of(&QSpinBox::valueChanged), 
+                this, [this, itemId = item.menuItem.id](int value) {
+            m_service->updateQuantity(itemId, value);
+            refreshCart();
         });
+        
         m_cartTable->setCellWidget(i, 1, spinBox);
 
+        // Price
         double price = item.menuItem.price / 100.0;
         m_cartTable->setItem(i, 2, new QTableWidgetItem(QString("$%1").arg(price, 0, 'f', 2)));
 
+        // Remove Button
         QPushButton *removeBtn = new QPushButton("Remove", this);
-        connect(removeBtn, &QPushButton::clicked, this, &CartWidget::handleRemoveItem);
+        connect(removeBtn, &QPushButton::clicked, this, [this, itemId = item.menuItem.id]() {
+            m_service->removeFromCart(itemId);
+            refreshCart();
+        });
         m_cartTable->setCellWidget(i, 3, removeBtn);
     }
 

@@ -18,10 +18,17 @@ int OrderRepository::createOrder(const Order &order) {
     QSqlQuery query(m_dbManager->database());
     query.prepare("INSERT INTO orders (session_id, seat_id, order_number, status, subtotal, discount, service_charge, total, created_at) "
                   "VALUES (:session_id, :seat_id, :order_number, :status, :subtotal, :discount, :service_charge, :total, :created_at)");
-    query.bindValue(":session_id", order.sessionId);
+    
+    // 修正：如果 sessionId 無效，則插入 NULL，避免 Foreign Key 錯誤
+    if (order.sessionId > 0) {
+        query.bindValue(":session_id", order.sessionId);
+    } else {
+        query.bindValue(":session_id", QVariant()); 
+    }
+
     query.bindValue(":seat_id", order.seatId);
     query.bindValue(":order_number", order.orderNumber);
-    query.bindValue(":status", "Draft");
+    query.bindValue(":status", "Submitted"); // 確保狀態是 Submitted
     query.bindValue(":subtotal", order.subtotal);
     query.bindValue(":discount", order.discount);
     query.bindValue(":service_charge", order.serviceCharge);
@@ -91,7 +98,7 @@ std::vector<Order> OrderRepository::getAllActiveOrders() {
     QSqlQuery query(m_dbManager->database());
     // Fetch orders that are not yet Paid or Cancelled
     query.prepare("SELECT id, session_id, seat_id, order_number, status, subtotal, discount, service_charge, total, created_at "
-                  "FROM orders WHERE status NOT IN ('Paid', 'Cancelled') ORDER BY created_at ASC");
+                  "FROM orders ORDER BY created_at DESC");
 
     if (!query.exec()) {
         Logger::error("Failed to fetch active orders: " + query.lastError().text());
@@ -112,6 +119,8 @@ std::vector<Order> OrderRepository::getAllActiveOrders() {
         else if (statusStr == "Preparing") order.status = OrderStatus::Preparing;
         else if (statusStr == "Ready") order.status = OrderStatus::Ready;
         else if (statusStr == "Served") order.status = OrderStatus::Served;
+        else if (statusStr == "Paid") order.status = OrderStatus::Paid;
+        else if (statusStr == "Cancelled") order.status = OrderStatus::Cancelled;
 
         order.subtotal = query.value("subtotal").toInt();
         order.discount = query.value("discount").toInt();

@@ -17,6 +17,7 @@ class MenuItem; // Forward declaration
 class CartWidget;
 class OrderService;
 class KitchenBoardWidget;
+class AdminPage;
 
 class MainWindow : public QMainWindow {
     Q_OBJECT
@@ -30,6 +31,7 @@ public:
                      MenuService *menuService, OrderService *orderService); // 確認簽名
 
     void setSelectedSeat(int seatId, int sessionId);
+    void showAdminPage();
 
 private slots:
     void handleStartSession(int seatId);
@@ -53,4 +55,5 @@ private:
     int m_selectedSeatId = -1;
     int m_selectedSessionId = -1;
     KitchenBoardWidget *m_kitchenBoardWidget;
+    AdminPage *m_adminPage;
 };
