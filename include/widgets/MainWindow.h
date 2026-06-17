@@ -41,6 +41,7 @@ public:
 private slots:
     void handleStartSession(int seatId);
     void handleEndSession(int seatId);
+    void handleExtendSession(int sessionId, int minutes);  // Added
     void refreshSeatMap();
     void handleItemAddedToCart(const MenuItem &item);
     void handleCheckout(const Order &order);

@@ -14,6 +14,7 @@
 #include "widgets/DashboardWidget.h"
 #include "database/DatabaseManager.h"
 #include "database/SeatRepository.h"
+#include "utils/Logger.h"
 
 #include <QSplitter>
 #include <QStatusBar>
@@ -51,17 +52,30 @@ void MainWindow::setupUI() {
 
     setCentralWidget(splitter);
 
+    // CRITICAL: Connect seat selection to detail panel
     connect(m_seatMapView, &SeatMapView::seatSelected, 
             m_seatDetailPanel, &SeatDetailPanel::updateSeatInfo);
+    
+    // Connect seat selection to update current seat
     connect(m_seatMapView, &SeatMapView::seatSelected, 
             this, [this](const Seat &seat) {
-                // 這裡需要取得 session ID，簡化起見先用 -1
-                setSelectedSeat(seat.id, -1); 
+                setSelectedSeat(seat.id, -1);
+                Logger::info("Seat selected: " + seat.code + " (ID: " + QString::number(seat.id) + ")");
             });
+
+    // Connect session buttons
+    connect(m_seatDetailPanel, &SeatDetailPanel::startSessionRequested, 
+            this, &MainWindow::handleStartSession);
+    connect(m_seatDetailPanel, &SeatDetailPanel::endSessionRequested, 
+            this, &MainWindow::handleEndSession);
+    connect(m_seatDetailPanel, &SeatDetailPanel::extendSessionRequested, 
+            this, &MainWindow::handleExtendSession);
+
+    // Connect seat position changes
     connect(m_seatMapView, &SeatMapView::seatPositionChanged, 
             this, &MainWindow::handleSeatPositionChanged);
-    
-    statusBar()->showMessage("Ready");
+
+    statusBar()->showMessage("Ready - Select a seat to view details");
 }
 
 void MainWindow::setDatabaseManager(DatabaseManager *dbManager) {
@@ -88,6 +102,7 @@ void MainWindow::setServices(SeatService *seatService, SeatSessionService *sessi
     connect(m_seatDetailPanel, &SeatDetailPanel::startSessionRequested, this, &MainWindow::handleStartSession);
     connect(m_seatDetailPanel, &SeatDetailPanel::endSessionRequested, this, &MainWindow::handleEndSession);
 
+    // Menu tab
     if (menuService) {
         m_menuBrowserWidget = new MenuBrowserWidget(menuService, m_rightPanelTabs);
         m_rightPanelTabs->addTab(m_menuBrowserWidget, "Menu");
@@ -96,18 +111,22 @@ void MainWindow::setServices(SeatService *seatService, SeatSessionService *sessi
                 this, &MainWindow::handleItemAddedToCart);
     }
 
+    // Cart tab
     if (orderService) {
         m_cartWidget = new CartWidget(orderService, m_rightPanelTabs);
         m_rightPanelTabs->addTab(m_cartWidget, "Cart");
         
         connect(m_cartWidget, &CartWidget::orderSubmitted, this, [this]() {
             statusBar()->showMessage("Order submitted successfully!", 3000);
-            // Refresh kitchen board after order submission
             if (m_kitchenBoardWidget) {
                 m_kitchenBoardWidget->refreshBoard();
             }
+            if (m_dashboardWidget) {
+                m_dashboardWidget->refreshData();
+            }
         });
 
+        // Kitchen Board tab
         m_kitchenBoardWidget = new KitchenBoardWidget(orderService, m_rightPanelTabs);
         m_rightPanelTabs->addTab(m_kitchenBoardWidget, "Kitchen Board");
     }
@@ -119,22 +138,45 @@ void MainWindow::setSelectedSeat(int seatId, int sessionId) {
     if (m_cartWidget) {
         m_cartWidget->setSelectedSeat(seatId, sessionId);
     }
+    Logger::info("Selected seat ID: " + QString::number(seatId) + ", Session ID: " + QString::number(sessionId));
 }
 
 void MainWindow::handleStartSession(int seatId) {
-    if (m_sessionService && m_sessionService->startSession(seatId)) {
-        refreshSeatMap();
-        if (m_dashboardWidget) {
-            m_dashboardWidget->refreshData();
+    Logger::info("MainWindow: Starting session for seat " + QString::number(seatId));
+    if (m_sessionService) {
+        if (m_sessionService->startSession(seatId)) {
+            statusBar()->showMessage("Session started for seat", 3000);
+            refreshSeatMap();
+            if (m_dashboardWidget) {
+                m_dashboardWidget->refreshData();
+            }
+        } else {
+            statusBar()->showMessage("Failed to start session", 3000);
+        }
+    }
+}
+
+
+void MainWindow::handleExtendSession(int sessionId, int minutes) {
+    if (m_sessionService) {
+        if (m_sessionService->extendSession(sessionId, minutes)) {
+            statusBar()->showMessage(QString("Session extended by %1 minutes").arg(minutes), 3000);
+            refreshSeatMap();
         }
     }
 }
 
 void MainWindow::handleEndSession(int seatId) {
-    if (m_sessionService && m_sessionService->endSession(seatId)) {
-        refreshSeatMap();
-        if (m_dashboardWidget) {
-            m_dashboardWidget->refreshData();
+    Logger::info("MainWindow: Ending session for seat " + QString::number(seatId));
+    if (m_sessionService) {
+        if (m_sessionService->endSession(seatId)) {
+            statusBar()->showMessage("Session ended", 3000);
+            refreshSeatMap();
+            if (m_dashboardWidget) {
+                m_dashboardWidget->refreshData();
+            }
+        } else {
+            statusBar()->showMessage("Failed to end session", 3000);
         }
     }
 }

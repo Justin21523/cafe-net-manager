@@ -39,6 +39,17 @@ SeatMapView::SeatMapView(QWidget *parent)
     });
 
     connect(m_saveBtn, &QPushButton::clicked, this, &SeatMapView::saveLayout);
+
+    // Connect scene selection to signal
+    connect(m_scene, &QGraphicsScene::selectionChanged, this, [this]() {
+        QList<QGraphicsItem*> selected = m_scene->selectedItems();
+        if (!selected.isEmpty()) {
+            SeatGraphicsItem *item = dynamic_cast<SeatGraphicsItem*>(selected.first());
+            if (item) {
+                emit seatSelected(item->seatData());
+            }
+        }
+    });
 }
 
 SeatMapView::~SeatMapView() {
@@ -64,7 +75,6 @@ void SeatMapView::setEditMode(bool enabled) {
         m_editToggleBtn->setText("Disable Edit Mode");
         m_editToggleBtn->setStyleSheet("background-color: #ff9800; color: white;");
         m_saveBtn->setEnabled(true);
-        
         // Clear selection when entering edit mode
         m_scene->clearSelection();
     } else {
