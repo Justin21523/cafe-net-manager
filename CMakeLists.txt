@@ -90,9 +90,21 @@ add_executable(cafe-net-manager
     include/database/CustomerRepository.h
     src/widgets/CustomerSearchWidget.cpp
     include/widgets/CustomerSearchWidget.h
-    
+
     src/utils/Logger.cpp
     include/utils/Logger.h
+
+    # V2.0 Navigation Refactor
+    src/widgets/SidebarWidget.cpp
+    include/widgets/SidebarWidget.h
+    src/pages/DashboardPage.cpp
+    include/pages/DashboardPage.h
+    src/pages/FloorPlanPage.cpp
+    include/pages/FloorPlanPage.h
+    src/pages/PosOrderPage.cpp
+    include/pages/PosOrderPage.h
+    src/pages/KitchenPage.cpp
+    include/pages/KitchenPage.h
 )
 
 target_include_directories(cafe-net-manager PRIVATE
