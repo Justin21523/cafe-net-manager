@@ -1,0 +1,46 @@
+# Build directories
+build/
+cmake-build-*/
+out/
+
+# Compiled Object files
+*.o
+*.obj
+*.so
+*.a
+*.dylib
+*.dll
+*.exe
+
+# CMake
+CMakeCache.txt
+CMakeFiles/
+cmake_install.cmake
+Makefile
+compile_commands.json
+*.cmake
+!CMakeLists.txt
+
+# Qt
+moc_*.cpp
+qrc_*.cpp
+ui_*.h
+*.user
+*.pro.user
+
+# Database files (generated at runtime)
+data/*.db
+data/*.sqlite
+
+# IDE & Editor
+.vscode/
+!.vscode/settings.json
+!.vscode/tasks.json
+!.vscode/launch.json
+*.swp
+*~
+.DS_Store
+Thumbs.db
+
+# Logs
+*.log
