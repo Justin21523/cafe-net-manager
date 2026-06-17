@@ -31,7 +31,10 @@ void MainWindow::setupUI() {
     mainLayout->setContentsMargins(0, 0, 0, 0);
     mainLayout->setSpacing(0);
 
+    // 1. Left Sidebar
     m_sidebar = new SidebarWidget(centralWidget);
+    
+    // 2. Central Stacked Widget for Pages
     m_stackedWidget = new QStackedWidget(centralWidget);
     
     mainLayout->addWidget(m_sidebar);
@@ -39,13 +42,14 @@ void MainWindow::setupUI() {
 
     setCentralWidget(centralWidget);
     
+    // Connect Sidebar navigation to StackedWidget
     connect(m_sidebar, &SidebarWidget::navigateTo, this, &MainWindow::handleNavigateTo);
     
     statusBar()->showMessage("Ready - V2.0 Architecture Loaded");
 }
 
 void MainWindow::initPages() {
-    // Create Pages with injected dependencies
+    // Create Pages and inject dependencies
     m_dashboardPage = new DashboardPage(m_dbManager, m_stackedWidget);
     m_floorPlanPage = new FloorPlanPage(m_stackedWidget);
     m_posOrderPage = new PosOrderPage(m_stackedWidget);
@@ -55,15 +59,16 @@ void MainWindow::initPages() {
     if (m_posOrderPage) m_posOrderPage->init(m_menuService, m_orderService);
     if (m_kitchenPage) m_kitchenPage->init(m_orderService);
     
-    // Add to StackedWidget
+    // Add Pages to StackedWidget (Order matters! Matches Sidebar indices)
     m_stackedWidget->addWidget(m_dashboardPage); // Index 0
     m_stackedWidget->addWidget(m_floorPlanPage); // Index 1
     m_stackedWidget->addWidget(m_posOrderPage);  // Index 2
     m_stackedWidget->addWidget(m_kitchenPage);   // Index 3
     
-    // Default to Floor Plan
+    // Default to Floor Plan (Index 1)
     m_stackedWidget->setCurrentIndex(1);
     
+    // Connect internal page signals to MainWindow slots
     connectSignals();
 }
 

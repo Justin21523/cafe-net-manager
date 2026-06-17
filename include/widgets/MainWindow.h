@@ -2,8 +2,8 @@
 
 #include <QMainWindow>
 #include <vector>
-#include "models/MenuItem.h"
 #include "models/Seat.h"
+#include "models/MenuItem.h"
 
 class SidebarWidget;
 class QStackedWidget;
@@ -27,13 +27,16 @@ public:
     explicit MainWindow(QWidget *parent = nullptr);
     ~MainWindow();
 
+    // Dependency Injection
     void setDatabaseManager(DatabaseManager *dbManager);
     void setServices(SeatService *seatService, SeatSessionService *sessionService, 
                      MenuService *menuService, OrderService *orderService,
                      SeatRepository *seatRepository);
                      
-    // Call this after setDatabaseManager and setServices
+    // Initialize Pages (Must be called AFTER setServices)
     void initPages(); 
+    
+    // Load initial data
     void initializeSeatMap(const std::vector<Seat> &seats);
 
 private slots:
@@ -53,14 +56,17 @@ private:
     void setupUI();
     void connectSignals();
     
+    // UI Components
     SidebarWidget *m_sidebar;
     QStackedWidget *m_stackedWidget;
     
+    // Pages
     DashboardPage *m_dashboardPage = nullptr;
     FloorPlanPage *m_floorPlanPage = nullptr;
     PosOrderPage *m_posOrderPage = nullptr;
     KitchenPage *m_kitchenPage = nullptr;
 
+    // Services & DB
     DatabaseManager *m_dbManager = nullptr;
     SeatService *m_seatService = nullptr;
     SeatSessionService *m_sessionService = nullptr;

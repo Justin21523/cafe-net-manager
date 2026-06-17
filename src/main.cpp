@@ -33,11 +33,15 @@ int main(int argc, char *argv[]) {
     std::vector<Seat> seats = seatService->loadAllSeats();
 
     MainWindow window;
+    
+    // 1. Inject Dependencies
     window.setDatabaseManager(dbManager);
     window.setServices(seatService, sessionService, menuService, orderService, seatRepo);
     
-    // Initialize Pages after dependencies are injected
+    // 2. Initialize Pages (Must be after setServices)
     window.initPages(); 
+    
+    // 3. Load Data & Show
     window.initializeSeatMap(seats);
     window.show();
 
