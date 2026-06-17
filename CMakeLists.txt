@@ -46,6 +46,19 @@ add_executable(cafe-net-manager
     src/services/SeatSessionService.cpp
     include/services/SeatSessionService.h
 
+    src/models/MenuCategory.cpp
+    include/models/MenuCategory.h
+    src/models/MenuItem.cpp
+    include/models/MenuItem.h
+    src/database/MenuRepository.cpp
+    include/database/MenuRepository.h
+    src/services/MenuService.cpp
+    include/services/MenuService.h
+    src/widgets/MenuItemCard.cpp
+    include/widgets/MenuItemCard.h
+    src/widgets/MenuBrowserWidget.cpp
+    include/widgets/MenuBrowserWidget.h
+    
     src/utils/Logger.cpp
     include/utils/Logger.h
 )

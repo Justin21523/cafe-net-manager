@@ -24,10 +24,12 @@ int main(int argc, char *argv[]) {
 
     SeatService *seatService = context->seatService();
     SeatSessionService *sessionService = context->seatSessionService();
+    MenuService *menuService = context->menuService(); // Added
+
     std::vector<Seat> seats = seatService->loadAllSeats();
 
     MainWindow window;
-    window.setServices(seatService, sessionService); // Added
+    window.setServices(seatService, sessionService, menuService); // Updated
     window.initializeSeatMap(seats);
     window.show();
 

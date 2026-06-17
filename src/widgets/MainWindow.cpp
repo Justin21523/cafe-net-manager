@@ -1,11 +1,16 @@
 #include "widgets/MainWindow.h"
 #include "widgets/SeatMapView.h"
 #include "widgets/SeatDetailPanel.h"
+#include "widgets/MenuBrowserWidget.h"
 #include "services/SeatService.h"
 #include "services/SeatSessionService.h"
+#include "services/MenuService.h"
+#include "models/MenuItem.h"
 
 #include <QSplitter>
 #include <QStatusBar>
+#include <QTabWidget>
+#include <QVBoxLayout>
 
 MainWindow::MainWindow(QWidget *parent)
     : QMainWindow(parent) {
@@ -20,20 +25,24 @@ void MainWindow::setupUI() {
     setWindowTitle("CafeNet Manager");
     resize(1200, 800);
 
-    // Use QSplitter for resizable left/right panels
     QSplitter *splitter = new QSplitter(Qt::Horizontal, this);
 
     m_seatMapView = new SeatMapView(splitter);
-    m_seatDetailPanel = new SeatDetailPanel(splitter);
+    
+    // Create Tab Widget for the right panel
+    m_rightPanelTabs = new QTabWidget(splitter);
+    m_seatDetailPanel = new SeatDetailPanel();
+    m_menuBrowserWidget = nullptr; // Will be initialized in setServices
 
-    // Set initial sizes: Map takes 70%, Detail takes 30%
+    m_rightPanelTabs->addTab(m_seatDetailPanel, "Seat Details");
+    // Menu tab will be added in setServices
+
     splitter->addWidget(m_seatMapView);
-    splitter->addWidget(m_seatDetailPanel);
+    splitter->addWidget(m_rightPanelTabs);
     splitter->setSizes({800, 400});
 
     setCentralWidget(splitter);
 
-    // Connect signals
     connect(m_seatMapView, &SeatMapView::seatSelected, 
             m_seatDetailPanel, &SeatDetailPanel::updateSeatInfo);
 
@@ -45,12 +54,20 @@ void MainWindow::initializeSeatMap(const std::vector<Seat> &seats) {
 }
 
 // ... add setServices ...
-void MainWindow::setServices(SeatService *seatService, SeatSessionService *sessionService) {
+void MainWindow::setServices(SeatService *seatService, SeatSessionService *sessionService, MenuService *menuService) {
     m_seatService = seatService;
     m_sessionService = sessionService;
 
     connect(m_seatDetailPanel, &SeatDetailPanel::startSessionRequested, this, &MainWindow::handleStartSession);
     connect(m_seatDetailPanel, &SeatDetailPanel::endSessionRequested, this, &MainWindow::handleEndSession);
+
+    if (menuService) {
+        m_menuBrowserWidget = new MenuBrowserWidget(menuService, m_rightPanelTabs);
+        m_rightPanelTabs->addTab(m_menuBrowserWidget, "Menu");
+        
+        connect(m_menuBrowserWidget, &MenuBrowserWidget::itemAddedToCart, 
+                this, &MainWindow::handleItemAddedToCart);
+    }
 }
 
 void MainWindow::handleStartSession(int seatId) {
@@ -73,3 +90,9 @@ void MainWindow::refreshSeatMap() {
         statusBar()->showMessage("Seat map refreshed.", 3000);
     }
 }
+
+void MainWindow::handleItemAddedToCart(const MenuItem &item) {
+    // Phase 7 will implement the cart logic. For now, just show a message.
+    statusBar()->showMessage("Added to cart: " + item.name + " ($" + QString::number(item.price / 100.0) + ")", 3000);
+}
+

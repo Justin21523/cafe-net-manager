@@ -4,6 +4,8 @@
 #include "database/SeatSessionRepository.h"
 #include "services/SeatService.h"
 #include "services/SeatSessionService.h"
+#include "database/MenuRepository.h"
+#include "services/MenuService.h"
 #include "utils/Logger.h"
 
 AppContext::AppContext(QObject *parent)
@@ -17,6 +19,9 @@ AppContext::AppContext(QObject *parent)
     
     m_sessionRepository = new SeatSessionRepository(m_databaseManager);
     m_sessionService = new SeatSessionService(m_seatRepository, m_sessionRepository);
+
+    m_menuRepository = new MenuRepository(m_databaseManager);
+    m_menuService = new MenuService(m_menuRepository);
 
     Logger::info("AppContext initialized.");
 }
@@ -36,4 +41,8 @@ SeatService* AppContext::seatService() const {
 
 SeatSessionService* AppContext::seatSessionService() const {
     return m_sessionService;
+}
+
+MenuService* AppContext::menuService() const {
+    return m_menuService;
 }
