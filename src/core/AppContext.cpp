@@ -1,7 +1,9 @@
 #include "core/AppContext.h"
 #include "database/DatabaseManager.h"
 #include "database/SeatRepository.h"
+#include "database/SeatSessionRepository.h"
 #include "services/SeatService.h"
+#include "services/SeatSessionService.h"
 #include "utils/Logger.h"
 
 AppContext::AppContext(QObject *parent)
@@ -10,9 +12,11 @@ AppContext::AppContext(QObject *parent)
     
     // Repository needs DatabaseManager
     m_seatRepository = new SeatRepository(m_databaseManager);
-    
     // Service needs Repository
     m_seatService = new SeatService(m_seatRepository);
+    
+    m_sessionRepository = new SeatSessionRepository(m_databaseManager);
+    m_sessionService = new SeatSessionService(m_seatRepository, m_sessionRepository);
 
     Logger::info("AppContext initialized.");
 }
@@ -28,4 +32,8 @@ DatabaseManager* AppContext::databaseManager() const {
 
 SeatService* AppContext::seatService() const {
     return m_seatService;
+}
+
+SeatSessionService* AppContext::seatSessionService() const {
+    return m_sessionService;
 }

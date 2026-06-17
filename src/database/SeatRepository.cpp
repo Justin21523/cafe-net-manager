@@ -53,3 +53,16 @@ std::vector<Seat> SeatRepository::getAllSeats() {
     Logger::info("Loaded " + QString::number(seats.size()) + " seats from database.");
     return seats;
 }
+
+bool SeatRepository::updateStatus(int seatId, SeatStatus status) {
+    QSqlQuery query(m_dbManager->database());
+    query.prepare("UPDATE seats SET status = :status, updated_at = CURRENT_TIMESTAMP WHERE id = :id");
+    query.bindValue(":status", SeatStatusHelper::toString(status));
+    query.bindValue(":id", seatId);
+
+    if (!query.exec()) {
+        Logger::error("Failed to update seat status: " + query.lastError().text());
+        return false;
+    }
+    return true;
+}

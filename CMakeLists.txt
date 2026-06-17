@@ -24,7 +24,7 @@ add_executable(cafe-net-manager
     include/widgets/SeatGraphicsItem.h  # Added
     src/widgets/SeatDetailPanel.cpp     # Added
     include/widgets/SeatDetailPanel.h   # Added
-        
+
     src/core/AppContext.cpp
     include/core/AppContext.h
     
@@ -39,6 +39,13 @@ add_executable(cafe-net-manager
     src/services/SeatService.cpp        # Added
     include/services/SeatService.h      # Added
     
+    src/models/SeatSession.cpp
+    include/models/SeatSession.h
+    src/database/SeatSessionRepository.cpp
+    include/database/SeatSessionRepository.h
+    src/services/SeatSessionService.cpp
+    include/services/SeatSessionService.h
+
     src/utils/Logger.cpp
     include/utils/Logger.h
 )

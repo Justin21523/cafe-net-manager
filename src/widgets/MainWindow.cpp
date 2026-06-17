@@ -1,6 +1,8 @@
 #include "widgets/MainWindow.h"
 #include "widgets/SeatMapView.h"
 #include "widgets/SeatDetailPanel.h"
+#include "services/SeatService.h"
+#include "services/SeatSessionService.h"
 
 #include <QSplitter>
 #include <QStatusBar>
@@ -40,4 +42,34 @@ void MainWindow::setupUI() {
 
 void MainWindow::initializeSeatMap(const std::vector<Seat> &seats) {
     m_seatMapView->loadSeats(seats);
+}
+
+// ... add setServices ...
+void MainWindow::setServices(SeatService *seatService, SeatSessionService *sessionService) {
+    m_seatService = seatService;
+    m_sessionService = sessionService;
+
+    connect(m_seatDetailPanel, &SeatDetailPanel::startSessionRequested, this, &MainWindow::handleStartSession);
+    connect(m_seatDetailPanel, &SeatDetailPanel::endSessionRequested, this, &MainWindow::handleEndSession);
+}
+
+void MainWindow::handleStartSession(int seatId) {
+    if (m_sessionService && m_sessionService->startSession(seatId)) {
+        refreshSeatMap();
+    }
+}
+
+void MainWindow::handleEndSession(int seatId) {
+    if (m_sessionService && m_sessionService->endSession(seatId)) {
+        refreshSeatMap();
+    }
+}
+
+void MainWindow::refreshSeatMap() {
+    if (m_seatService) {
+        std::vector<Seat> seats = m_seatService->loadAllSeats();
+        m_seatMapView->loadSeats(seats);
+        m_seatDetailPanel->clearSelection();
+        statusBar()->showMessage("Seat map refreshed.", 3000);
+    }
 }

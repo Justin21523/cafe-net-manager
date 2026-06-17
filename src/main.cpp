@@ -23,10 +23,11 @@ int main(int argc, char *argv[]) {
     }
 
     SeatService *seatService = context->seatService();
+    SeatSessionService *sessionService = context->seatSessionService();
     std::vector<Seat> seats = seatService->loadAllSeats();
 
     MainWindow window;
-    // Pass loaded seats to the main window to render the map
+    window.setServices(seatService, sessionService); // Added
     window.initializeSeatMap(seats);
     window.show();
 

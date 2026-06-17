@@ -14,6 +14,8 @@ public:
     // Fetches all seats from the database
     std::vector<Seat> getAllSeats();
 
+    bool updateStatus(int seatId, SeatStatus status);
+
 private:
     DatabaseManager *m_dbManager;
 };
