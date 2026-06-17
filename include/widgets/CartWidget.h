@@ -14,9 +14,11 @@ public:
     explicit CartWidget(OrderService *service, QWidget *parent = nullptr);
 
     void refreshCart();
+    void setSelectedSeat(int seatId, int sessionId);
 
 signals:
     void orderSubmitted();
+    void checkoutRequested(const Order &order);
 
 private slots:
     void handleQuantityChanged(int row);

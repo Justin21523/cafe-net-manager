@@ -9,7 +9,7 @@
 #include "widgets/CartWidget.h"
 #include "services/OrderService.h"
 #include "widgets/KitchenBoardWidget.h"
-
+#include "widgets/CheckoutDialog.h"
 #include <QSplitter>
 #include <QStatusBar>
 #include <QTabWidget>
@@ -48,7 +48,11 @@ void MainWindow::setupUI() {
 
     connect(m_seatMapView, &SeatMapView::seatSelected, 
             m_seatDetailPanel, &SeatDetailPanel::updateSeatInfo);
-
+    connect(m_seatMapView, &SeatMapView::seatSelected, 
+            this, [this](const Seat &seat) {
+                // 這裡需要取得 session ID，簡化起見先用 -1
+                setSelectedSeat(seat.id, -1); 
+            });
     statusBar()->showMessage("Ready");
 }
 
@@ -81,7 +85,7 @@ void MainWindow::setServices(SeatService *seatService, SeatSessionService *sessi
         connect(m_cartWidget, &CartWidget::orderSubmitted, this, [this]() {
             statusBar()->showMessage("Order submitted successfully!", 3000);
         });
-        
+
         m_kitchenBoardWidget = new KitchenBoardWidget(orderService, m_rightPanelTabs);
         m_rightPanelTabs->addTab(m_kitchenBoardWidget, "Kitchen Board");
     }
@@ -91,7 +95,7 @@ void MainWindow::setSelectedSeat(int seatId, int sessionId) {
     m_selectedSeatId = seatId;
     m_selectedSessionId = sessionId;
     if (m_cartWidget) {
-        // Pass seat info to cart widget if needed
+        m_cartWidget->setSelectedSeat(seatId, sessionId);
     }
 }
 
@@ -123,5 +127,16 @@ void MainWindow::handleItemAddedToCart(const MenuItem &item) {
             m_cartWidget->refreshCart();
         }
         statusBar()->showMessage("Added to cart: " + item.name, 3000);
+    } else {
+        statusBar()->showMessage("Error: Order service not available", 3000);
+    }
+
+}
+
+void MainWindow::handleCheckout(const Order &order) {
+    CheckoutDialog dialog(order, this);
+    if (dialog.exec() == QDialog::Accepted) {
+        // Process payment
+        statusBar()->showMessage("Payment completed!", 3000);
     }
 }

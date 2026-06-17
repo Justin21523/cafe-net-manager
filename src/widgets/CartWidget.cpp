@@ -7,6 +7,7 @@
 #include <QHBoxLayout>
 #include <QLabel>
 #include <QHeaderView>
+#include "utils/Logger.h"
 
 CartWidget::CartWidget(OrderService *service, QWidget *parent)
     : QWidget(parent), m_service(service) {
@@ -80,6 +81,25 @@ void CartWidget::refreshCart() {
     m_submitBtn->setEnabled(!items.empty());
 }
 
+void CartWidget::setSelectedSeat(int seatId, int sessionId) {
+    m_currentSeatId = seatId;
+    m_currentSessionId = sessionId;
+}
+
+void CartWidget::handleSubmitOrder() {
+    Logger::info("Submit order clicked. Seat ID: " + QString::number(m_currentSeatId));
+    if (m_currentSeatId != -1) {
+        if (m_service->submitOrder(m_currentSeatId, m_currentSessionId)) {
+            emit orderSubmitted();
+            refreshCart();
+        } else {
+            Logger::error("Failed to submit order");
+        }
+    } else {
+        Logger::warning("No seat selected for order");
+    }
+}
+
 void CartWidget::handleQuantityChanged(int row) {
     // Simplified: just refresh for now
     refreshCart();
@@ -106,11 +126,3 @@ void CartWidget::handleRemoveItem() {
     }
 }
 
-void CartWidget::handleSubmitOrder() {
-    if (m_currentSeatId != -1) {
-        if (m_service->submitOrder(m_currentSeatId, m_currentSessionId)) {
-            emit orderSubmitted();
-            refreshCart();
-        }
-    }
-}

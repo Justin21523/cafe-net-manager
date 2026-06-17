@@ -14,7 +14,7 @@ MenuItemCard::MenuItemCard(const MenuItem &item, QWidget *parent)
 }
 
 void MenuItemCard::setupUI() {  
-    setStyleSheet("background-color: #f9f9f9; border: 1px solid #ddd; border-radius: 5px;");
+    setStyleSheet("background-color: #f9f9f9; border: 1px solid #ddd; border-radius: 5px; padding: 5px;");
 
     QVBoxLayout *layout = new QVBoxLayout(this);
     layout->setContentsMargins(8, 8, 8, 8);
@@ -31,6 +31,7 @@ void MenuItemCard::setupUI() {
     layout->addWidget(m_priceLabel);
 
     QPushButton *addBtn = new QPushButton("Add", this);
+    addBtn->setStyleSheet("background-color: #4CAF50; color: white; border: none; padding: 5px; border-radius: 3px;");
     layout->addWidget(addBtn);
 
     // Connect button click to signal

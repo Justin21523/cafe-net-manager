@@ -66,6 +66,7 @@ bool OrderService::submitOrder(int seatId, int sessionId) {
     order.subtotal = calculateCartTotal();
     order.total = order.subtotal; // Simplified: no discount/service charge yet
     order.createdAt = QDateTime::currentDateTime();
+    order.status = OrderStatus::Submitted;
 
     // Convert cart items to order items
     std::vector<OrderItem> orderItems;

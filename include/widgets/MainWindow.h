@@ -1,9 +1,10 @@
 #pragma once
 
 #include "services/SeatService.h"
+#include "models/Seat.h"
+#include "models/Order.h"
 #include <QMainWindow>
 #include <vector>
-#include <models/Seat.h>
 
 class SeatMapView;
 class SeatDetailPanel;
@@ -35,6 +36,7 @@ private slots:
     void handleEndSession(int seatId);
     void refreshSeatMap();
     void handleItemAddedToCart(const MenuItem &item);
+    void handleCheckout(const Order &order);
 
 private:
     void setupUI();
