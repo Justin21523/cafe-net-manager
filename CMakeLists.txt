@@ -112,7 +112,12 @@ add_executable(cafe-net-manager
     src/widgets/FloorPlanView.cpp include/widgets/FloorPlanView.h
     src/widgets/ToolPalette.cpp include/widgets/ToolPalette.h
     src/widgets/InspectorPanel.cpp include/widgets/InspectorPanel.h
-    
+    # V2.1.2 Undo/Redo & Line Tool
+    src/utils/Command.cpp
+    include/utils/Command.h
+    src/graphics/LineItem.cpp
+    include/graphics/LineItem.h
+        
 )
 
 target_include_directories(cafe-net-manager PRIVATE

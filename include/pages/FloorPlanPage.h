@@ -29,7 +29,7 @@ signals:
 
 private slots:
     void handleSceneSelectionChanged();
-    void handleToolSelected(ObjectType type); // FIXED: Match ToolPalette's signal type
+    void handleToolSelected(ObjectType type, ShapeType shape);
     void handleSelectMode();
     void handleStartSession();
     void handleEndSession();

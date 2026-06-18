@@ -3,7 +3,7 @@
 #include <QGraphicsObject>
 #include <QGraphicsRectItem>
 
-enum class ObjectType { SEAT, WALL, COUNTER, DOOR, WINDOW };
+enum class ObjectType { SEAT, WALL, COUNTER, DOOR, WINDOW, LINE };
 enum class ShapeType { Rectangle, Circle, Triangle };
 
 class FloorPlanItem : public QGraphicsObject {
@@ -31,6 +31,11 @@ public:
     bool isEditMode() const { return m_isEditMode; }
 
     QVariant itemChange(GraphicsItemChange change, const QVariant &value) override;
+    
+    // Handle mouse events for resizing and moving
+    void mousePressEvent(QGraphicsSceneMouseEvent *event) override;
+    void mouseMoveEvent(QGraphicsSceneMouseEvent *event) override;
+    void mouseReleaseEvent(QGraphicsSceneMouseEvent *event) override;
 
 signals:
     void geometryChanged(); // Emitted when size or pos changes
@@ -38,7 +43,8 @@ signals:
 protected:
     void updateHandlePositions();
     int snapToGrid(int value) const;
-
+    void drawShape(QPainter *painter);
+    
     QSizeF m_size;
     ShapeType m_shapeType = ShapeType::Rectangle;
     bool m_isEditMode = false;

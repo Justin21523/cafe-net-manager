@@ -38,7 +38,9 @@ void ToolPalette::setupUI() {
     layout->addWidget(createToolButton("🧱 Wall", ObjectType::WALL, ShapeType::Rectangle));
     layout->addWidget(createToolButton("🛒 Counter", ObjectType::COUNTER, ShapeType::Rectangle));
     layout->addWidget(createToolButton("🔺 Decor (Tri)", ObjectType::DOOR, ShapeType::Triangle));
-    
+    layout->addWidget(createToolButton("🔺 Decor (Tri)", ObjectType::DOOR, ShapeType::Triangle));
+    layout->addWidget(createToolButton("📏 Line", ObjectType::LINE, ShapeType::Rectangle)); // Add Line Tool
+        
     layout->addStretch();
 }
 

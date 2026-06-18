@@ -48,6 +48,13 @@ void InspectorPanel::buildUI(FloorPlanItem *item) {
     m_shapeCombo->addItem("Rectangle", (int)ShapeType::Rectangle);
     m_shapeCombo->addItem("Circle", (int)ShapeType::Circle);
     m_shapeCombo->addItem("Triangle", (int)ShapeType::Triangle);
+    
+    // FIX 4: Ensure widgets expand to fill available width
+    m_xSpin->setSizePolicy(QSizePolicy::Expanding, QSizePolicy::Fixed);
+    m_ySpin->setSizePolicy(QSizePolicy::Expanding, QSizePolicy::Fixed);
+    m_wSpin->setSizePolicy(QSizePolicy::Expanding, QSizePolicy::Fixed);
+    m_hSpin->setSizePolicy(QSizePolicy::Expanding, QSizePolicy::Fixed);
+    m_shapeCombo->setSizePolicy(QSizePolicy::Expanding, QSizePolicy::Fixed);
 
     m_formLayout->addRow("X:", m_xSpin);
     m_formLayout->addRow("Y:", m_ySpin);

@@ -31,6 +31,20 @@ QRectF FloorPlanItem::boundingRect() const {
     return QRectF(0, 0, m_size.width(), m_size.height());
 }
 
+void FloorPlanItem::drawShape(QPainter *painter) {
+    if (m_shapeType == ShapeType::Rectangle) {
+        painter->drawRect(boundingRect());
+    } else if (m_shapeType == ShapeType::Circle) {
+        painter->drawEllipse(boundingRect());
+    } else if (m_shapeType == ShapeType::Triangle) {
+        QPolygonF tri;
+        tri << QPointF(boundingRect().center().x(), boundingRect().top())
+            << boundingRect().bottomRight()
+            << boundingRect().bottomLeft();
+        painter->drawPolygon(tri);
+    }
+}
+
 void FloorPlanItem::paint(QPainter *painter, const QStyleOptionGraphicsItem *option, QWidget *widget) {
     Q_UNUSED(option); Q_UNUSED(widget);
     
@@ -83,9 +97,9 @@ void FloorPlanItem::setShapeType(ShapeType type) {
 
 void FloorPlanItem::setEditMode(bool enabled) {
     m_isEditMode = enabled;
+    // FIX 1: Strictly control ItemIsMovable based on Edit Mode
     setFlag(QGraphicsItem::ItemIsMovable, enabled);
     
-    // Show/hide handles
     for (int i = 0; i < 4; ++i) {
         m_handles[i]->setVisible(enabled && isSelected());
     }
@@ -109,6 +123,59 @@ QVariant FloorPlanItem::itemChange(GraphicsItemChange change, const QVariant &va
         emit geometryChanged();
     }
     return QGraphicsObject::itemChange(change, value);
+}
+
+// FIX 3: Implement Handle Dragging
+void FloorPlanItem::mousePressEvent(QGraphicsSceneMouseEvent *event) {
+    if (!m_isEditMode || event->button() != Qt::LeftButton) {
+        QGraphicsObject::mousePressEvent(event);
+        return;
+    }
+
+    // Check if clicked on a handle
+    m_draggedHandle = -1;
+    for (int i = 0; i < 4; ++i) {
+        if (m_handles[i]->contains(event->pos())) {
+            m_draggedHandle = i;
+            break;
+        }
+    }
+
+    m_dragStartPos = event->scenePos();
+    m_dragStartSize = m_size;
+    
+    if (m_draggedHandle == -1) {
+        // Clicked on body, let default move logic handle it
+        QGraphicsObject::mousePressEvent(event);
+    } else {
+        event->accept();
+    }
+}
+
+void FloorPlanItem::mouseMoveEvent(QGraphicsSceneMouseEvent *event) {
+    if (!m_isEditMode || m_draggedHandle == -1) {
+        QGraphicsObject::mouseMoveEvent(event);
+        return;
+    }
+
+    QPointF delta = event->scenePos() - m_dragStartPos;
+    QSizeF newSize = m_dragStartSize;
+
+    // Calculate new size based on which handle is dragged
+    if (m_draggedHandle == 1 || m_draggedHandle == 3) newSize.setWidth(qMax(20.0, m_dragStartSize.width() + delta.x()));
+    if (m_draggedHandle == 2 || m_draggedHandle == 3) newSize.setHeight(qMax(20.0, m_dragStartSize.height() + delta.y()));
+    
+    // Snap size to grid
+    newSize.setWidth(snapToGrid(newSize.width()));
+    newSize.setHeight(snapToGrid(newSize.height()));
+
+    setSize(newSize);
+    event->accept();
+}
+
+void FloorPlanItem::mouseReleaseEvent(QGraphicsSceneMouseEvent *event) {
+    m_draggedHandle = -1;
+    QGraphicsObject::mouseReleaseEvent(event);
 }
 
 void FloorPlanItem::updateHandlePositions() {

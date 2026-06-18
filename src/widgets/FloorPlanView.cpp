@@ -3,6 +3,8 @@
 #include "graphics/SeatItem.h"
 #include "graphics/WallItem.h"
 #include "graphics/CounterItem.h"
+#include "graphics/LineItem.h"
+#include "utils/Command.h"
 #include <QMouseEvent>
 #include <QKeyEvent>
 #include <QApplication>
@@ -31,9 +33,7 @@ void FloorPlanView::setCurrentTool(ObjectType type, ShapeType shape) {
 void FloorPlanView::setSelectMode() { m_isSelectMode = true; setDragMode(QGraphicsView::RubberBandDrag); }
 
 void FloorPlanView::mousePressEvent(QMouseEvent *event) {
-    if (m_isSelectMode || event->button() != Qt::LeftButton) {
-        QGraphicsView::mousePressEvent(event); return;
-    }
+    if (event->button() != Qt::LeftButton) { QGraphicsView::mousePressEvent(event); return; }
 
     QPointF scenePos = mapToScene(event->pos());
     FloorPlanScene *fpScene = qobject_cast<FloorPlanScene*>(scene());
@@ -41,8 +41,33 @@ void FloorPlanView::mousePressEvent(QMouseEvent *event) {
     scenePos.setX(qRound(scenePos.x() / gridSize) * gridSize);
     scenePos.setY(qRound(scenePos.y() / gridSize) * gridSize);
 
-    // Create item based on tool (Simplified: using generic FloorPlanItem logic via derived classes)
-    // For brevity, we'll instantiate WallItem/CounterItem and set their shape/size
+    // 1. Line Tool Logic
+    if (m_currentTool == ObjectType::LINE && m_isEditMode) {
+        if (!m_isDrawingLine) {
+            m_isDrawingLine = true;
+            m_lineStartPos = scenePos;
+            m_tempLine = new LineItem(scenePos, scenePos);
+            fpScene->addItem(m_tempLine);
+        }
+        return;
+    }
+    
+    // 2. Track Move/Resize for Undo
+    if (m_isEditMode && !m_isSelectMode) {
+        QGraphicsItem *itemAt = scene()->itemAt(scenePos, transform());
+        m_draggedItem = dynamic_cast<FloorPlanItem*>(itemAt);
+        if (m_draggedItem) {
+            m_itemOldPos = m_draggedItem->pos();
+            m_itemOldSize = m_draggedItem->size();
+        }
+    }
+
+    // 3. Default Object Placement
+    if (m_isSelectMode || m_currentTool == ObjectType::LINE) {
+        QGraphicsView::mousePressEvent(event);
+        return;
+    }
+
     FloorPlanItem *newItem = nullptr;
     if (m_currentTool == ObjectType::SEAT) {
         Seat s; s.code = "NEW"; s.width = 60; s.height = 60;
@@ -51,8 +76,6 @@ void FloorPlanView::mousePressEvent(QMouseEvent *event) {
         newItem = new WallItem();
     } else if (m_currentTool == ObjectType::COUNTER) {
         newItem = new CounterItem();
-    } else {
-        newItem = new WallItem(); // Fallback for Triangle/Door
     }
 
     if (newItem) {
@@ -63,39 +86,50 @@ void FloorPlanView::mousePressEvent(QMouseEvent *event) {
     }
 }
 
+void FloorPlanView::mouseMoveEvent(QMouseEvent *event) {
+    if (m_isDrawingLine && m_tempLine) {
+        QPointF scenePos = mapToScene(event->pos());
+        m_tempLine->updateLine(scenePos);
+        return;
+    }
+    QGraphicsView::mouseMoveEvent(event);
+}
+
+void FloorPlanView::mouseReleaseEvent(QMouseEvent *event) {
+    if (m_isDrawingLine && m_tempLine) {
+        QPointF scenePos = mapToScene(event->pos());
+        m_tempLine->updateLine(scenePos);
+        m_isDrawingLine = false;
+        m_tempLine = nullptr;
+        return;
+    }
+
+    // Push Undo Commands
+    if (m_draggedItem) {
+        if (m_draggedItem->pos() != m_itemOldPos) {
+            m_undoStack.push(new MoveCommand(m_draggedItem, m_itemOldPos, m_draggedItem->pos()));
+        }
+        if (m_draggedItem->size() != m_itemOldSize) {
+            m_undoStack.push(new ResizeCommand(m_draggedItem, m_itemOldSize, m_draggedItem->size()));
+        }
+        m_draggedItem = nullptr;
+    }
+    QGraphicsView::mouseReleaseEvent(event);
+}
+
 void FloorPlanView::keyPressEvent(QKeyEvent *event) {
+    // Undo / Redo
+    if (event->matches(QKeySequence::Undo)) { m_undoStack.undo(); return; }
+    if (event->matches(QKeySequence::Redo)) { m_undoStack.redo(); return; }
+
+    // Delete
     if (event->key() == Qt::Key_Delete) {
         QList<QGraphicsItem*> selected = scene()->selectedItems();
         for (QGraphicsItem* item : selected) {
-            if (FloorPlanItem* fpItem = dynamic_cast<FloorPlanItem*>(item)) {
-                scene()->removeItem(fpItem);
-                delete fpItem;
-            }
+            scene()->removeItem(item);
+            delete item;
         }
-    } 
-    else if (event->matches(QKeySequence::Copy)) {
-        m_clipboard.clear();
-        for (QGraphicsItem* item : scene()->selectedItems()) {
-            if (FloorPlanItem* fpItem = dynamic_cast<FloorPlanItem*>(item)) {
-                m_clipboard.append({fpItem->objectType(), fpItem->shapeType(), fpItem->size()});
-            }
-        }
-    } 
-    else if (event->matches(QKeySequence::Paste)) {
-        for (const auto& data : m_clipboard) {
-            FloorPlanItem* newItem = nullptr;
-            if (data.type == ObjectType::SEAT) { Seat s; s.width=data.size.width(); s.height=data.size.height(); newItem = new SeatItem(s); }
-            else if (data.type == ObjectType::WALL) { newItem = new WallItem(); }
-            else { newItem = new CounterItem(); }
-            
-            newItem->setShapeType(data.shape);
-            newItem->setSize(data.size);
-            newItem->setPos(mapToScene(viewport()->rect().center())); // Paste in center
-            newItem->setEditMode(m_isEditMode);
-            scene()->addItem(newItem);
-        }
+        return;
     }
-    else {
-        QGraphicsView::keyPressEvent(event);
-    }
+    QGraphicsView::keyPressEvent(event);
 }

@@ -16,17 +16,16 @@ void SeatItem::paint(QPainter *painter, const QStyleOptionGraphicsItem *option, 
     
     QColor fillColor = getStatusColor();
     QColor borderColor = isSelected() ? Qt::yellow : Qt::black;
-    int borderWidth = isSelected() ? 3 : 1;
-
-    painter->setPen(QPen(borderColor, borderWidth));
+    
+    painter->setPen(QPen(borderColor, isSelected() ? 3 : 1));
     painter->setBrush(QBrush(fillColor));
-    painter->drawRect(boundingRect());
+    
+    // FIX 2: Use the base class helper to draw the correct shape!
+    drawShape(painter);
 
-    // Draw Text
     painter->setPen(Qt::black);
     QFont font = painter->font();
-    font.setBold(true);
-    font.setPointSize(10);
+    font.setBold(true); font.setPointSize(10);
     painter->setFont(font);
     painter->drawText(boundingRect(), Qt::AlignCenter, m_seat.code);
 }
