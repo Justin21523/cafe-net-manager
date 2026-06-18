@@ -1,5 +1,7 @@
 #include "services/OrderService.h"
 #include "database/OrderRepository.h"
+#include "services/InventoryService.h"
+#include "services/AuditService.h"
 #include "utils/Logger.h"
 
 #include <QDateTime>
@@ -72,7 +74,7 @@ bool OrderService::submitOrder(int seatId, int sessionId) {
     order.sessionId = sessionId;
     order.orderNumber = "ORD-" + QDateTime::currentDateTime().toString("yyyyMMdd-HHmmss");
     order.subtotal = calculateCartTotal();
-    order.total = order.subtotal; // Simplified: no discount/service charge yet
+    order.total = order.subtotal;
     order.createdAt = QDateTime::currentDateTime();
     order.status = OrderStatus::Submitted;
 
@@ -88,15 +90,29 @@ bool OrderService::submitOrder(int seatId, int sessionId) {
         item.note = pair.second.note; // NEW: Pass note to OrderItem
         orderItems.push_back(item);
     }
+    order.items = orderItems;
 
     int orderId = m_repository->createOrder(order);
     if (orderId == -1) return false;
+    
+    order.id = orderId; // Update ID for inventory deduction
+    m_repository->addOrderItems(orderId, orderItems);
 
-    if (!m_repository->addOrderItems(orderId, orderItems)) {
-        return false;
+    // --- Phase 3 Integration ---
+    // 1. Deduct Inventory
+    if (m_inventoryService) {
+        if (!m_inventoryService->deductStockForOrder(order)) {
+            Logger::warning("Order " + order.orderNumber + " submitted, but inventory deduction failed/rolled back.");
+            // 注意：這裡為了不中斷點餐流程，我們不 return false，而是記錄警告。
+            // 在真實系統中，可能會要求前端顯示「庫存不足」並取消訂單。
+        }
     }
 
-    Logger::info("Order submitted: " + order.orderNumber);
+    // 2. Audit Log (Assume Employee ID 1 for demo)
+    if (m_auditService) {
+        m_auditService->logAction(1, "SUBMIT_ORDER", "orders", orderId, "Seat: " + QString::number(seatId));
+    }
+
     clearCart();
     return true;
 }
@@ -116,3 +132,7 @@ std::vector<Order> OrderService::getOrdersBySeat(int seatId) {
 std::vector<OrderItem> OrderService::getOrderItems(int orderId) {
     return m_repository->getOrderItems(orderId);
 }
+
+void OrderService::setInventoryService(InventoryService *invSvc) { m_inventoryService = invSvc; }
+void OrderService::setAuditService(AuditService *auditSvc) { m_auditService = auditSvc; }
+

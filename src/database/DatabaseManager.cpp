@@ -84,143 +84,157 @@ bool DatabaseManager::initializeSchema() {
         Logger::error("Failed to enable foreign keys: " + query.lastError().text());
         return false;
     }
+    query.exec("PRAGMA user_version;");
+    int currentVersion = 0;
+    if (query.next()) currentVersion = query.value(0).toInt();
 
-    // SQL statements to create tables
-    // We use CREATE TABLE IF NOT EXISTS to make it safe to run multiple times
-    QStringList sqlStatements = {
-        // Seats table
-        R"(CREATE TABLE IF NOT EXISTS seats (
-            id INTEGER PRIMARY KEY AUTOINCREMENT,
-            code TEXT UNIQUE NOT NULL,
-            name TEXT NOT NULL,
-            area TEXT DEFAULT 'Main',
-            type TEXT DEFAULT 'Table',
-            x INTEGER DEFAULT 0,
-            y INTEGER DEFAULT 0,
-            width INTEGER DEFAULT 100,
-            height INTEGER DEFAULT 100,
-            status TEXT DEFAULT 'Available',
-            capacity INTEGER DEFAULT 2,
-            has_power_outlet INTEGER DEFAULT 0,
-            is_quiet_zone INTEGER DEFAULT 0,
-            note TEXT,
-            created_at DATETIME DEFAULT CURRENT_TIMESTAMP,
-            updated_at DATETIME DEFAULT CURRENT_TIMESTAMP
-        ))",
+    Logger::info("Current DB Schema Version: " + QString::number(currentVersion));
 
-        // Menu Categories table
-        R"(CREATE TABLE IF NOT EXISTS menu_categories (
-            id INTEGER PRIMARY KEY AUTOINCREMENT,
-            name TEXT UNIQUE NOT NULL,
-            sort_order INTEGER DEFAULT 0,
-            created_at DATETIME DEFAULT CURRENT_TIMESTAMP,
-            updated_at DATETIME DEFAULT CURRENT_TIMESTAMP
-        ))",
+    // V1: Base Tables (Only run if version is 0)
+    if (currentVersion < 1) {    
+        // SQL statements to create tables
+        // We use CREATE TABLE IF NOT EXISTS to make it safe to run multiple times
+        QStringList v1Tables = {
+            // Seats table
+            R"(CREATE TABLE IF NOT EXISTS seats (
+                id INTEGER PRIMARY KEY AUTOINCREMENT,
+                code TEXT UNIQUE NOT NULL,
+                name TEXT NOT NULL,
+                area TEXT DEFAULT 'Main',
+                type TEXT DEFAULT 'Table',
+                x INTEGER DEFAULT 0,
+                y INTEGER DEFAULT 0,
+                width INTEGER DEFAULT 100,
+                height INTEGER DEFAULT 100,
+                status TEXT DEFAULT 'Available',
+                capacity INTEGER DEFAULT 2,
+                has_power_outlet INTEGER DEFAULT 0,
+                is_quiet_zone INTEGER DEFAULT 0,
+                note TEXT,
+                created_at DATETIME DEFAULT CURRENT_TIMESTAMP,
+                updated_at DATETIME DEFAULT CURRENT_TIMESTAMP
+            ))",
 
-        // Menu Items table
-        R"(CREATE TABLE IF NOT EXISTS menu_items (
-            id INTEGER PRIMARY KEY AUTOINCREMENT,
-            category_id INTEGER,
-            name TEXT NOT NULL,
-            description TEXT,
-            price INTEGER NOT NULL, -- Stored in cents to avoid floating point issues
-            cost INTEGER DEFAULT 0,
-            is_available INTEGER DEFAULT 1,
-            is_active INTEGER DEFAULT 1,
-            sort_order INTEGER DEFAULT 0,
-            created_at DATETIME DEFAULT CURRENT_TIMESTAMP,
-            updated_at DATETIME DEFAULT CURRENT_TIMESTAMP,
-            FOREIGN KEY (category_id) REFERENCES menu_categories(id) ON DELETE SET NULL
-        ))",
+            // Menu Categories table
+            R"(CREATE TABLE IF NOT EXISTS menu_categories (
+                id INTEGER PRIMARY KEY AUTOINCREMENT,
+                name TEXT UNIQUE NOT NULL,
+                sort_order INTEGER DEFAULT 0,
+                created_at DATETIME DEFAULT CURRENT_TIMESTAMP,
+                updated_at DATETIME DEFAULT CURRENT_TIMESTAMP
+            ))",
 
-        // Seat Sessions table
-        R"(CREATE TABLE IF NOT EXISTS seat_sessions (
-            id INTEGER PRIMARY KEY AUTOINCREMENT,
-            seat_id INTEGER NOT NULL,
-            customer_id INTEGER,
-            customer_name TEXT,
-            guest_count INTEGER DEFAULT 1,
-            start_time DATETIME NOT NULL,
-            end_time DATETIME,
-            expected_end_time DATETIME,
-            mode TEXT DEFAULT 'Cafe',
-            prepaid_minutes INTEGER DEFAULT 0,
-            hourly_rate INTEGER DEFAULT 0,
-            status TEXT DEFAULT 'Active',
-            note TEXT,
-            created_at DATETIME DEFAULT CURRENT_TIMESTAMP,
-            updated_at DATETIME DEFAULT CURRENT_TIMESTAMP,
-            FOREIGN KEY (seat_id) REFERENCES seats(id) ON DELETE CASCADE,
-            FOREIGN KEY (customer_id) REFERENCES customers(id) ON DELETE SET NULL
-        ))",
+            // Menu Items table
+            R"(CREATE TABLE IF NOT EXISTS menu_items (
+                id INTEGER PRIMARY KEY AUTOINCREMENT,
+                category_id INTEGER,
+                name TEXT NOT NULL,
+                description TEXT,
+                price INTEGER NOT NULL, -- Stored in cents to avoid floating point issues
+                cost INTEGER DEFAULT 0,
+                is_available INTEGER DEFAULT 1,
+                is_active INTEGER DEFAULT 1,
+                sort_order INTEGER DEFAULT 0,
+                created_at DATETIME DEFAULT CURRENT_TIMESTAMP,
+                updated_at DATETIME DEFAULT CURRENT_TIMESTAMP,
+                FOREIGN KEY (category_id) REFERENCES menu_categories(id) ON DELETE SET NULL
+            ))",
 
-        // Orders table
-        R"(CREATE TABLE IF NOT EXISTS orders (
-            id INTEGER PRIMARY KEY AUTOINCREMENT,
-            session_id INTEGER,
-            seat_id INTEGER NOT NULL,
-            order_number TEXT UNIQUE NOT NULL,
-            status TEXT DEFAULT 'Draft',
-            subtotal INTEGER DEFAULT 0,
-            discount INTEGER DEFAULT 0,
-            service_charge INTEGER DEFAULT 0,
-            total INTEGER DEFAULT 0,
-            created_at DATETIME DEFAULT CURRENT_TIMESTAMP,
-            updated_at DATETIME DEFAULT CURRENT_TIMESTAMP,
-            FOREIGN KEY (session_id) REFERENCES seat_sessions(id) ON DELETE SET NULL,
-            FOREIGN KEY (seat_id) REFERENCES seats(id) ON DELETE CASCADE
-        ))",
+            // Seat Sessions table
+            R"(CREATE TABLE IF NOT EXISTS seat_sessions (
+                id INTEGER PRIMARY KEY AUTOINCREMENT,
+                seat_id INTEGER NOT NULL,
+                customer_id INTEGER,
+                customer_name TEXT,
+                guest_count INTEGER DEFAULT 1,
+                start_time DATETIME NOT NULL,
+                end_time DATETIME,
+                expected_end_time DATETIME,
+                mode TEXT DEFAULT 'Cafe',
+                prepaid_minutes INTEGER DEFAULT 0,
+                hourly_rate INTEGER DEFAULT 0,
+                status TEXT DEFAULT 'Active',
+                note TEXT,
+                created_at DATETIME DEFAULT CURRENT_TIMESTAMP,
+                updated_at DATETIME DEFAULT CURRENT_TIMESTAMP,
+                FOREIGN KEY (seat_id) REFERENCES seats(id) ON DELETE CASCADE,
+                FOREIGN KEY (customer_id) REFERENCES customers(id) ON DELETE SET NULL
+            ))",
 
-        // Order Items table
-        R"(CREATE TABLE IF NOT EXISTS order_items (
-            id INTEGER PRIMARY KEY AUTOINCREMENT,
-            order_id INTEGER NOT NULL,
-            menu_item_id INTEGER,
-            item_name TEXT NOT NULL,
-            quantity INTEGER NOT NULL DEFAULT 1,
-            unit_price INTEGER NOT NULL,
-            subtotal INTEGER NOT NULL,
-            note TEXT,
-            created_at DATETIME DEFAULT CURRENT_TIMESTAMP,
-            FOREIGN KEY (order_id) REFERENCES orders(id) ON DELETE CASCADE,
-            FOREIGN KEY (menu_item_id) REFERENCES menu_items(id) ON DELETE SET NULL
-        ))",
+            // Orders table
+            R"(CREATE TABLE IF NOT EXISTS orders (
+                id INTEGER PRIMARY KEY AUTOINCREMENT,
+                session_id INTEGER,
+                seat_id INTEGER NOT NULL,
+                order_number TEXT UNIQUE NOT NULL,
+                status TEXT DEFAULT 'Draft',
+                subtotal INTEGER DEFAULT 0,
+                discount INTEGER DEFAULT 0,
+                service_charge INTEGER DEFAULT 0,
+                total INTEGER DEFAULT 0,
+                created_at DATETIME DEFAULT CURRENT_TIMESTAMP,
+                updated_at DATETIME DEFAULT CURRENT_TIMESTAMP,
+                FOREIGN KEY (session_id) REFERENCES seat_sessions(id) ON DELETE SET NULL,
+                FOREIGN KEY (seat_id) REFERENCES seats(id) ON DELETE CASCADE
+            ))",
 
-        // Payments table
-        R"(CREATE TABLE IF NOT EXISTS payments (
-            id INTEGER PRIMARY KEY AUTOINCREMENT,
-            order_id INTEGER NOT NULL,
-            amount INTEGER NOT NULL,
-            method TEXT NOT NULL, -- Cash, CreditCard, MemberBalance
-            status TEXT DEFAULT 'Completed',
-            created_at DATETIME DEFAULT CURRENT_TIMESTAMP,
-            FOREIGN KEY (order_id) REFERENCES orders(id) ON DELETE CASCADE
-        ))",
+            // Order Items table
+            R"(CREATE TABLE IF NOT EXISTS order_items (
+                id INTEGER PRIMARY KEY AUTOINCREMENT,
+                order_id INTEGER NOT NULL,
+                menu_item_id INTEGER,
+                item_name TEXT NOT NULL,
+                quantity INTEGER NOT NULL DEFAULT 1,
+                unit_price INTEGER NOT NULL,
+                subtotal INTEGER NOT NULL,
+                note TEXT,
+                created_at DATETIME DEFAULT CURRENT_TIMESTAMP,
+                FOREIGN KEY (order_id) REFERENCES orders(id) ON DELETE CASCADE,
+                FOREIGN KEY (menu_item_id) REFERENCES menu_items(id) ON DELETE SET NULL
+            ))",
 
-        // Customer table
-        R"(CREATE TABLE IF NOT EXISTS customers (
-            id INTEGER PRIMARY KEY AUTOINCREMENT,
-            name TEXT NOT NULL,
-            phone TEXT,
-            email TEXT,
-            notes TEXT,
-            total_visits INTEGER DEFAULT 0,
-            total_spent INTEGER DEFAULT 0,
-            created_at DATETIME DEFAULT CURRENT_TIMESTAMP,
-            last_visit DATETIME
-        ))",
-    };
+            // Payments table
+            R"(CREATE TABLE IF NOT EXISTS payments (
+                id INTEGER PRIMARY KEY AUTOINCREMENT,
+                order_id INTEGER NOT NULL,
+                amount INTEGER NOT NULL,
+                method TEXT NOT NULL, -- Cash, CreditCard, MemberBalance
+                status TEXT DEFAULT 'Completed',
+                created_at DATETIME DEFAULT CURRENT_TIMESTAMP,
+                FOREIGN KEY (order_id) REFERENCES orders(id) ON DELETE CASCADE
+            ))",
 
-    // Execute each statement
-    for (const QString &sql : sqlStatements) {
-        if (!query.exec(sql)) {
-            Logger::error("Schema creation failed: " + query.lastError().text());
-            Logger::error("SQL: " + sql);
-            return false;
+            // Customer table
+            R"(CREATE TABLE IF NOT EXISTS customers (
+                id INTEGER PRIMARY KEY AUTOINCREMENT,
+                name TEXT NOT NULL,
+                phone TEXT,
+                email TEXT,
+                notes TEXT,
+                total_visits INTEGER DEFAULT 0,
+                total_spent INTEGER DEFAULT 0,
+                created_at DATETIME DEFAULT CURRENT_TIMESTAMP,
+                last_visit DATETIME
+            ))",
+        };
+
+        // Execute each statement
+        for (const QString &sql : v1Tables) {
+            if (!query.exec(sql)) {
+                Logger::error("Schema creation failed: " + query.lastError().text());
+                Logger::error("SQL: " + sql);
+                return false;
+            }
         }
+        query.exec("PRAGMA user_version = 1;");
+        Logger::info("Migrated to Schema V1.");
+        currentVersion = 1;
     }
+    // V2: Phase 3 Deep Modules (Inventory, Modifiers, Audit)
+    if (currentVersion < 2) {
+        if (!migrateToV2()) return false;
+    }    
 
-    Logger::info("Database schema initialized successfully.");
     return true;
 }
 
@@ -298,5 +312,47 @@ bool DatabaseManager::seedDemoData() {
     }
 
     Logger::info("Demo data seeded successfully.");
+    return true;
+}
+
+
+bool DatabaseManager::migrateToV2() {
+    QSqlQuery query(m_db);
+    Logger::info("Starting Migration to V2 (Inventory, Modifiers, Audit)...");
+
+    QStringList v2Tables = {
+        // 3.2 Inventory & BOM
+        "CREATE TABLE IF NOT EXISTS ingredients (id INTEGER PRIMARY KEY AUTOINCREMENT, name TEXT UNIQUE, unit TEXT, current_stock REAL, safety_stock REAL, cost_per_unit INTEGER, created_at DATETIME DEFAULT CURRENT_TIMESTAMP)",
+        "CREATE TABLE IF NOT EXISTS menu_item_ingredients (id INTEGER PRIMARY KEY AUTOINCREMENT, menu_item_id INTEGER, ingredient_id INTEGER, quantity REAL, FOREIGN KEY(menu_item_id) REFERENCES menu_items(id) ON DELETE CASCADE, FOREIGN KEY(ingredient_id) REFERENCES ingredients(id))",
+        "CREATE TABLE IF NOT EXISTS stock_movements (id INTEGER PRIMARY KEY AUTOINCREMENT, ingredient_id INTEGER, quantity_change REAL, movement_type TEXT, reference_id INTEGER, created_at DATETIME DEFAULT CURRENT_TIMESTAMP, FOREIGN KEY(ingredient_id) REFERENCES ingredients(id))",
+        
+        // 3.3 Structured Modifiers
+        "CREATE TABLE IF NOT EXISTS option_groups (id INTEGER PRIMARY KEY AUTOINCREMENT, name TEXT, is_required INTEGER)",
+        "CREATE TABLE IF NOT EXISTS options (id INTEGER PRIMARY KEY AUTOINCREMENT, group_id INTEGER, name TEXT, price_modifier INTEGER, FOREIGN KEY(group_id) REFERENCES option_groups(id) ON DELETE CASCADE)",
+        "CREATE TABLE IF NOT EXISTS menu_item_option_groups (id INTEGER PRIMARY KEY AUTOINCREMENT, menu_item_id INTEGER, group_id INTEGER, FOREIGN KEY(menu_item_id) REFERENCES menu_items(id) ON DELETE CASCADE, FOREIGN KEY(group_id) REFERENCES option_groups(id) ON DELETE CASCADE)",
+        
+        // 3.4 Employee & Audit
+        "CREATE TABLE IF NOT EXISTS employees (id INTEGER PRIMARY KEY AUTOINCREMENT, name TEXT UNIQUE, role TEXT, pin_code TEXT, is_active INTEGER, created_at DATETIME DEFAULT CURRENT_TIMESTAMP)",
+        "CREATE TABLE IF NOT EXISTS audit_logs (id INTEGER PRIMARY KEY AUTOINCREMENT, employee_id INTEGER, action_type TEXT, target_table TEXT, target_id INTEGER, details TEXT, created_at DATETIME DEFAULT CURRENT_TIMESTAMP)"
+    };
+
+    for (const QString &sql : v2Tables) {
+        if (!query.exec(sql)) {
+            Logger::error("V2 Schema failed: " + query.lastError().text() + " | SQL: " + sql);
+            return false;
+        }
+    }
+    // Seed some V2 demo data
+    query.exec("INSERT OR IGNORE INTO ingredients (name, unit, current_stock, safety_stock, cost_per_unit) VALUES ('Coffee Beans', 'g', 5000, 1000, 100)");
+    query.exec("INSERT OR IGNORE INTO ingredients (name, unit, current_stock, safety_stock, cost_per_unit) VALUES ('Milk', 'ml', 10000, 2000, 50)");
+    
+    // Link Espresso to Coffee Beans
+    query.exec("INSERT OR IGNORE INTO menu_item_ingredients (menu_item_id, ingredient_id, quantity) SELECT mi.id, i.id, 18.0 FROM menu_items mi, ingredients i WHERE mi.name = 'Espresso' AND i.name = 'Coffee Beans'");
+    
+    query.exec("INSERT OR IGNORE INTO employees (name, role, pin_code, is_active) VALUES ('Admin', 'Manager', '1234', 1)");
+    query.exec("INSERT OR IGNORE INTO employees (name, role, pin_code, is_active) VALUES ('Justin', 'Staff', '5678', 1)");
+
+    query.exec("PRAGMA user_version = 2;");
+    Logger::info("Successfully migrated to Schema V2.");
     return true;
 }

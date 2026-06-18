@@ -51,7 +51,7 @@ void MainWindow::setupUI() {
 
 void MainWindow::initPages(const std::vector<Seat> &seats) {
     // 1. Instantiate Pages
-    m_dashboardPage = new DashboardPage(m_dbManager, m_stackedWidget);
+    m_dashboardPage = new DashboardPage(m_dbManager, m_inventoryService, m_stackedWidget);
     
     // 注入 SeatSessionService 和 OrderService 給 FloorPlanPage
     m_floorPlanPage = new FloorPlanPage(
@@ -135,12 +135,14 @@ void MainWindow::setDatabaseManager(DatabaseManager *dbManager) { m_dbManager = 
 
 void MainWindow::setServices(SeatService *seatService, SeatSessionService *sessionService, 
                              MenuService *menuService, OrderService *orderService,
-                             SeatRepository *seatRepository) {
+                             SeatRepository *seatRepository,
+                             InventoryService *inventoryService) {
     m_seatService = seatService;
     m_sessionService = sessionService;
     m_menuService = menuService;
     m_orderService = orderService;
     m_seatRepository = seatRepository;
+    m_inventoryService = inventoryService;
 }
 
 void MainWindow::initializeSeatMap(const std::vector<Seat> &seats) {

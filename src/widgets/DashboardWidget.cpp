@@ -1,5 +1,7 @@
 #include "widgets/DashboardWidget.h"
 #include "database/DatabaseManager.h"
+#include "services/InventoryService.h"
+#include "database/DatabaseManager.h"
 
 #include <QVBoxLayout>
 #include <QHBoxLayout>
@@ -11,9 +13,11 @@
 #include <QSqlQuery>
 #include <QDateTime>
 #include <QDate>
+#include <QSqlQuery>
+#include <QTableWidgetItem>
 
-DashboardWidget::DashboardWidget(DatabaseManager *dbManager, QWidget *parent)
-    : QWidget(parent), m_dbManager(dbManager) {
+DashboardWidget::DashboardWidget(DatabaseManager *dbManager, InventoryService *invService, QWidget *parent)
+    : QWidget(parent), m_dbManager(dbManager), m_invService(invService) {
     setupUI();
     refreshData();
 }
@@ -61,6 +65,14 @@ void DashboardWidget::setupUI() {
     seatsLayout->addWidget(m_activeSeatsLabel);
     statsLayout->addWidget(seatsBox, 0, 2);
 
+    QGroupBox *inventoryBox = new QGroupBox("Inventory", this);
+    QVBoxLayout *inventoryLayout = new QVBoxLayout(inventoryBox);
+    m_inventoryLabel = new QLabel("Beans: -- | Milk: --", this);
+    m_inventoryLabel->setAlignment(Qt::AlignCenter);
+    m_inventoryLabel->setStyleSheet("color: #6A1B9A; font-weight: bold;");
+    inventoryLayout->addWidget(m_inventoryLabel);
+    statsLayout->addWidget(inventoryBox, 0, 3);
+
     mainLayout->addLayout(statsLayout);
 
     // Top Menu Items
@@ -88,6 +100,7 @@ void DashboardWidget::setupUI() {
 
 void DashboardWidget::refreshData() {
     loadTodayStats();
+    loadInventoryStatus();
     loadTopMenuItems();
     loadHourlyRevenue();
 }
@@ -113,6 +126,16 @@ void DashboardWidget::loadTodayStats() {
         int activeSeats = query.value(0).toInt();
         m_activeSeatsLabel->setText(QString::number(activeSeats));
     }
+}
+
+void DashboardWidget::loadInventoryStatus() {
+    if (!m_invService) return;
+    
+    double beans = m_invService->getIngredientStock("Coffee Beans");
+    double milk = m_invService->getIngredientStock("Milk");
+    
+    // 假設你有一個 QLabel 叫 m_inventoryLabel
+    m_inventoryLabel->setText(QString("☕ Beans: %1g | 🥛 Milk: %2ml").arg(beans).arg(milk));
 }
 
 void DashboardWidget::loadTopMenuItems() {

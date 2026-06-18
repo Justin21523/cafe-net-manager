@@ -20,6 +20,7 @@ class MenuService;
 class OrderService;
 class DatabaseManager;
 class SeatRepository;
+class InventoryService;
 
 class MainWindow : public QMainWindow {
     Q_OBJECT
@@ -32,7 +33,8 @@ public:
     void setDatabaseManager(DatabaseManager *dbManager);
     void setServices(SeatService *seatService, SeatSessionService *sessionService, 
                      MenuService *menuService, OrderService *orderService,
-                     SeatRepository *seatRepository);
+                     SeatRepository *seatRepository,
+                     InventoryService *inventoryService = nullptr);
                      
     // Initialize Pages (Must be called AFTER setServices)
     void initPages(const std::vector<Seat> &seats); 
@@ -80,6 +82,7 @@ private:
     MenuService *m_menuService = nullptr;
     OrderService *m_orderService = nullptr;
     SeatRepository *m_seatRepository = nullptr;
+    InventoryService *m_inventoryService = nullptr;
     
     int m_selectedSeatId = -1;
 };

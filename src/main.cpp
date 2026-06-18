@@ -34,7 +34,8 @@ int main(int argc, char *argv[]) {
         context->seatSessionService(),
         context->menuService(),
         context->orderService(),
-        context->seatRepository()
+        context->seatRepository(),
+        context->inventoryService()
     );
 
     // 2. Initialize Pages (Must be after setServices)

@@ -134,7 +134,14 @@ add_executable(cafe-net-manager
     include/widgets/admin/MenuAdminWidget.h
     src/widgets/admin/CustomerAdminWidget.cpp
     include/widgets/admin/CustomerAdminWidget.h    
-)
+    # Phase 3 Deep Modules
+    src/services/InventoryService.cpp
+    include/services/InventoryService.h
+    src/services/AuditService.cpp
+    include/services/AuditService.h
+    include/utils/DatabaseTransaction.h
+    
+ )
 
 target_include_directories(cafe-net-manager PRIVATE
     ${CMAKE_CURRENT_SOURCE_DIR}/include

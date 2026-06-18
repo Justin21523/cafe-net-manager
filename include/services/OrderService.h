@@ -6,6 +6,8 @@
 #include <map>
 
 class OrderRepository;
+class InventoryService;
+class AuditService;
 
 // CartItem represents an item in the shopping cart (temporary, not yet saved to DB)
 struct CartItem {
@@ -34,8 +36,13 @@ public:
 
     std::vector<Order> getOrdersBySeat(int seatId);
     std::vector<OrderItem> getOrderItems(int orderId);
+    
+    void setInventoryService(InventoryService *invSvc);
+    void setAuditService(AuditService *auditSvc);
 
 private:
     OrderRepository *m_repository;
     std::map<int, CartItem> m_cart; // key: menuItemId
+    InventoryService *m_inventoryService = nullptr;
+    AuditService *m_auditService = nullptr;
 };

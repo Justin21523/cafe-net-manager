@@ -9,6 +9,9 @@
 #include "database/OrderRepository.h"
 #include "services/OrderService.h"
 #include "database/CustomerRepository.h"
+#include "services/InventoryService.h"
+#include "services/AuditService.h"
+#include "services/OrderService.h"
 #include "utils/Logger.h"
 
 AppContext::AppContext(QObject *parent)
@@ -27,10 +30,17 @@ AppContext::AppContext(QObject *parent)
     m_menuService = new MenuService(m_menuRepository);
 
     m_orderRepository = new OrderRepository(m_databaseManager);
-    m_orderService = new OrderService(m_orderRepository);
 
     m_customerRepository = new CustomerRepository(m_databaseManager);
+     // Phase 3 Services
+    m_inventoryService = new InventoryService(m_databaseManager);
+    m_auditService = new AuditService(m_databaseManager);
     
+    m_orderService = new OrderService(m_orderRepository);
+    
+    // Inject Phase 3 dependencies into OrderService
+    m_orderService->setInventoryService(m_inventoryService);
+    m_orderService->setAuditService(m_auditService);   
     Logger::info("AppContext initialized.");
 }
 
@@ -66,3 +76,6 @@ CustomerRepository* AppContext::customerRepository() const {
 SeatRepository* AppContext::seatRepository() const {
     return m_seatRepository;
 }
+
+InventoryService* AppContext::inventoryService() const { return m_inventoryService; }
+AuditService* AppContext::auditService() const { return m_auditService; }
