@@ -23,8 +23,8 @@ void InspectorPanel::setItem(FloorPlanItem *item) {
     if (m_currentItem) disconnect(m_currentItem, &FloorPlanItem::geometryChanged, this, &InspectorPanel::handleGeometryChanged);
     
     m_currentItem = item;
-    QLayoutItem *child;
-    while ((child = m_formLayout->takeAt(0)) != nullptr) {
+    while (m_formLayout->count() > 0) {
+        QLayoutItem *child = m_formLayout->takeAt(0);
         if (child->widget()) child->widget()->deleteLater();
         delete child;
     }

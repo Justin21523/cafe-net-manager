@@ -129,6 +129,30 @@ void OrderCardWidget::handleActionClicked() {
     emit statusChanged(m_order.id, nextStatus);
 }
 
+void OrderCardWidget::handleStatusChange(const QString &statusText) {
+    OrderStatus newStatus = m_order.status;
+
+    if (statusText == "Submitted") {
+        newStatus = OrderStatus::Submitted;
+    } else if (statusText == "Accepted") {
+        newStatus = OrderStatus::Accepted;
+    } else if (statusText == "Preparing") {
+        newStatus = OrderStatus::Preparing;
+    } else if (statusText == "Ready") {
+        newStatus = OrderStatus::Ready;
+    } else if (statusText == "Served") {
+        newStatus = OrderStatus::Served;
+    } else if (statusText == "Paid") {
+        newStatus = OrderStatus::Paid;
+    } else if (statusText == "Cancelled") {
+        newStatus = OrderStatus::Cancelled;
+    }
+
+    if (newStatus != m_order.status) {
+        emit statusChanged(m_order.id, newStatus);
+    }
+}
+
 void OrderCardWidget::updateWaitTime() {
     m_waitTimeLabel->setText("⏱️ Waiting: " + calculateWaitTime());
 }

@@ -4,7 +4,7 @@
 #include "pages/FloorPlanPage.h"
 #include "pages/PosOrderPage.h"
 #include "pages/KitchenPage.h"
-#include "widgets/AdminPage.h"
+#include "pages/AdminPage.h"
 
 #include "services/SeatService.h"
 #include "services/SeatSessionService.h"
@@ -75,7 +75,7 @@ void MainWindow::initPages(const std::vector<Seat> &seats) {
     m_stackedWidget->addWidget(m_adminPage);        // 4
     
     m_stackedWidget->setCurrentIndex(1);
-
+    
     // 3. Wire Cross-Page Signals
     connect(m_floorPlanPage, &FloorPlanPage::sessionChanged, m_dashboardPage, &DashboardPage::refreshData);
     connect(m_posOrderPage, &PosOrderPage::orderSubmitted, m_kitchenPage, &KitchenPage::refreshBoard);
@@ -96,6 +96,17 @@ void MainWindow::initPages(const std::vector<Seat> &seats) {
             // 這取決於你的業務邏輯
         }
     });   
+    // 6. Cross-Page Sync (Admin changes -> Refresh Frontend)
+    connect(m_adminPage, &AdminPage::dataUpdated, this, [this](const QString &module) {
+        if (module == "seats" && m_floorPlanPage) {
+            // 假設 FloorPlanPage 有 refreshMap() 或重新載入的方法
+            // 這裡我們用一個簡單的方式：重新初始化
+            // 注意：你需要確保 FloorPlanPage 能重新載入，或者發射信號給它
+            statusBar()->showMessage("Seats updated in Admin. Please refresh Floor Plan if needed.", 3000);
+        } else if (module == "menu" && m_posOrderPage) {
+            statusBar()->showMessage("Menu updated in Admin. POS page will refresh on next visit.", 3000);
+        }
+    });
 
     connectSignals();
 

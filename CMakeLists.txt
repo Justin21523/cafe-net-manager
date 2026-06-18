@@ -36,8 +36,6 @@ add_executable(cafe-net-manager
     include/widgets/OrderCardWidget.h
     src/widgets/DashboardWidget.cpp
     include/widgets/DashboardWidget.h
-    src/widgets/AdminPage.cpp
-    include/widgets/AdminPage.h
     src/widgets/SeatManagementWidget.cpp
     include/widgets/SeatManagementWidget.h
     src/widgets/MenuManagementWidget.cpp
@@ -126,7 +124,16 @@ add_executable(cafe-net-manager
     src/widgets/PosMenuPanel.cpp
     include/widgets/PosMenuPanel.h
     src/widgets/PosCartPanel.cpp
-    include/widgets/PosCartPanel.h     
+    include/widgets/PosCartPanel.h 
+    # V2.5 Admin Center
+    src/pages/AdminPage.cpp
+    include/pages/AdminPage.h
+    src/widgets/admin/SeatAdminWidget.cpp
+    include/widgets/admin/SeatAdminWidget.h
+    src/widgets/admin/MenuAdminWidget.cpp
+    include/widgets/admin/MenuAdminWidget.h
+    src/widgets/admin/CustomerAdminWidget.cpp
+    include/widgets/admin/CustomerAdminWidget.h    
 )
 
 target_include_directories(cafe-net-manager PRIVATE

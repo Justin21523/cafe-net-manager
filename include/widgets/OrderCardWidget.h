@@ -21,6 +21,7 @@ signals:
 private slots:
     void updateWaitTime();
     void handleStatusChange(const QString &statusText);
+    void handleActionClicked();
 
 private:
     void setupUI();
