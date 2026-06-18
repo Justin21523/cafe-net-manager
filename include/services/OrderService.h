@@ -33,6 +33,7 @@ public:
     std::vector<Order> getActiveOrders();
 
     std::vector<Order> getOrdersBySeat(int seatId);
+    std::vector<OrderItem> getOrderItems(int orderId);
 
 private:
     OrderRepository *m_repository;

@@ -2,7 +2,7 @@
 #include <QVBoxLayout>
 #include <QHBoxLayout>
 #include <QLabel>
-#include <QComboBox>
+#include <QPushButton>
 #include <QTimer>
 #include <QDateTime>
 #include <QFrame>
@@ -11,93 +11,137 @@ OrderCardWidget::OrderCardWidget(const Order &order, QWidget *parent)
     : QWidget(parent), m_order(order) {
     setupUI();
     
-    // Timer to update wait time every second
     m_timer = new QTimer(this);
     connect(m_timer, &QTimer::timeout, this, &OrderCardWidget::updateWaitTime);
-    m_timer->start(1000); // 1000ms = 1s
-    
-    updateWaitTime(); // Initial update
+    m_timer->start(1000);
+    updateWaitTime();
 }
 
 OrderCardWidget::~OrderCardWidget() {
-    if (m_timer) {
-        m_timer->stop();
-        m_timer->deleteLater();
+    if (m_timer) m_timer->stop();
+}
+
+void OrderCardWidget::setupUI() {
+    // Dark theme KDS style for high contrast
+    setStyleSheet("background-color: #1E1E1E; border: 2px solid #333; border-radius: 8px; padding: 12px;");
+    setMinimumWidth(280);
+    setMaximumWidth(350);
+
+    QVBoxLayout *mainLayout = new QVBoxLayout(this);
+    mainLayout->setSpacing(10);
+
+    // 1. Header: Order Number & Seat
+    QHBoxLayout *headerLayout = new QHBoxLayout();
+    m_headerLabel = new QLabel(this);
+    m_headerLabel->setStyleSheet("color: #FFFFFF; font-size: 16px; font-weight: bold;");
+    
+    // Format: ORD-123 | Seat A1
+    QString seatInfo = (m_order.seatId > 0) ? QString("Seat %1").arg(m_order.seatId) : "Walk-in";
+    m_headerLabel->setText(QString("%1 | %2").arg(m_order.orderNumber).arg(seatInfo));
+    headerLayout->addWidget(m_headerLabel);
+    headerLayout->addStretch();
+    mainLayout->addLayout(headerLayout);
+
+    // 2. Wait Time
+    m_waitTimeLabel = new QLabel(this);
+    m_waitTimeLabel->setStyleSheet("color: #FF9800; font-size: 14px; font-weight: bold;");
+    mainLayout->addWidget(m_waitTimeLabel);
+
+    // Separator
+    QFrame *line = new QFrame(this);
+    line->setFrameShape(QFrame::HLine);
+    line->setStyleSheet("color: #444;");
+    mainLayout->addWidget(line);
+
+    // 3. Order Items Details
+    m_itemsLayout = new QVBoxLayout();
+    m_itemsLayout->setSpacing(6);
+    
+    for (const auto &item : m_order.items) {
+        QHBoxLayout *itemRow = new QHBoxLayout();
+        
+        // Qty & Name
+        QLabel *itemLabel = new QLabel(QString("%1x %2").arg(item.quantity).arg(item.itemName), this);
+        itemLabel->setStyleSheet("color: #E0E0E0; font-size: 14px;");
+        itemLabel->setWordWrap(true);
+        itemRow->addWidget(itemLabel, 1);
+        
+        m_itemsLayout->addLayout(itemRow);
+
+        // Note (if exists)
+        if (!item.note.isEmpty()) {
+            QLabel *noteLabel = new QLabel(QString("   ↳ Note: %1").arg(item.note), this);
+            noteLabel->setStyleSheet("color: #FF5252; font-size: 12px; font-style: italic;");
+            noteLabel->setWordWrap(true);
+            m_itemsLayout->addWidget(noteLabel);
+        }
+    }
+    mainLayout->addLayout(m_itemsLayout);
+
+    mainLayout->addStretch();
+
+    // 4. Action Button
+    m_actionBtn = new QPushButton(this);
+    m_actionBtn->setMinimumHeight(45);
+    m_actionBtn->setCursor(Qt::PointingHandCursor);
+    m_actionBtn->setStyleSheet("font-size: 16px; font-weight: bold; border-radius: 6px; color: white;");
+    
+    connect(m_actionBtn, &QPushButton::clicked, this, &OrderCardWidget::handleActionClicked);
+    mainLayout->addWidget(m_actionBtn);
+
+    updateActionButton();
+}
+
+void OrderCardWidget::updateActionButton() {
+    switch (m_order.status) {
+        case OrderStatus::Submitted:
+        case OrderStatus::Accepted:
+            m_actionBtn->setText("🍳 Start Preparing");
+            m_actionBtn->setStyleSheet(m_actionBtn->styleSheet() + "background-color: #2196F3;"); // Blue
+            break;
+        case OrderStatus::Preparing:
+            m_actionBtn->setText("✅ Mark Ready");
+            m_actionBtn->setStyleSheet(m_actionBtn->styleSheet() + "background-color: #4CAF50;"); // Green
+            break;
+        case OrderStatus::Ready:
+        case OrderStatus::Served:
+            m_actionBtn->setText("🗑️ Complete Order");
+            m_actionBtn->setStyleSheet(m_actionBtn->styleSheet() + "background-color: #757575;"); // Gray
+            break;
+        default:
+            m_actionBtn->setText("Unknown Status");
+            m_actionBtn->setEnabled(false);
+            break;
     }
 }
 
-void OrderCardWidget::setupUI(){
-    setStyleSheet("background-color: #fff; border: 2px solid #ccc; border-radius: 8px; padding: 10px;");
-    setMinimumWidth(200);
-    setMaximumWidth(300);
-
-    QVBoxLayout *layout = new QVBoxLayout(this);
-    layout->setSpacing(8);
-
-    // Header: Order Number
-    m_orderNumLabel = new QLabel(m_order.orderNumber, this);
-    QFont boldFont = m_orderNumLabel->font();
-    boldFont.setPointSize(12);
-    boldFont.setBold(true);
-    m_orderNumLabel->setFont(boldFont);
-    layout->addWidget(m_orderNumLabel);
-
-    // Seat Info
-    m_seatLabel = new QLabel(QString("Seat ID: %1").arg(m_order.seatId), this);
-    layout->addWidget(m_seatLabel);
-
-    // Horizontal line
-    QFrame *line = new QFrame(this);
-    line->setFrameShape(QFrame::HLine);
-    line->setFrameShadow(QFrame::Sunken);
-    layout->addWidget(line);
-
-    // Wait Time
-    m_waitTimeLabel = new QLabel("Waiting: 0m 0s", this);
-    m_waitTimeLabel->setStyleSheet("color: red; font-weight: bold; font-size: 14px;");
-    layout->addWidget(m_waitTimeLabel);
-
-    // Status Combo Box
-    m_statusCombo = new QComboBox(this);
-    m_statusCombo->addItem("Submitted", QVariant::fromValue(OrderStatus::Submitted));
-    m_statusCombo->addItem("Accepted", QVariant::fromValue(OrderStatus::Accepted));
-    m_statusCombo->addItem("Preparing", QVariant::fromValue(OrderStatus::Preparing));
-    m_statusCombo->addItem("Ready", QVariant::fromValue(OrderStatus::Ready));
-    m_statusCombo->addItem("Served", QVariant::fromValue(OrderStatus::Served));
+void OrderCardWidget::handleActionClicked() {
+    OrderStatus nextStatus = m_order.status;
     
-    // Set current status
-    int currentIndex = 0;
-    switch (m_order.status) {
-        case OrderStatus::Submitted: currentIndex = 0; break;
-        case OrderStatus::Accepted: currentIndex = 1; break;
-        case OrderStatus::Preparing: currentIndex = 2; break;
-        case OrderStatus::Ready: currentIndex = 3; break;
-        case OrderStatus::Served: currentIndex = 4; break;
-        default: break;
+    if (m_order.status == OrderStatus::Submitted || m_order.status == OrderStatus::Accepted) {
+        nextStatus = OrderStatus::Preparing;
+    } else if (m_order.status == OrderStatus::Preparing) {
+        nextStatus = OrderStatus::Ready;
+    } else if (m_order.status == OrderStatus::Ready || m_order.status == OrderStatus::Served) {
+        nextStatus = OrderStatus::Served; // Or Paid/Cancelled depending on your flow
     }
-    m_statusCombo->setCurrentIndex(currentIndex);
 
-    connect(m_statusCombo, QOverload<int>::of(&QComboBox::currentIndexChanged), 
-            this, [this](int index) {
-        OrderStatus newStatus = static_cast<OrderStatus>(m_statusCombo->itemData(index).toInt());
-        emit statusChanged(m_order.id, newStatus);
-    });
-
-    layout->addWidget(m_statusCombo);
-    layout->addStretch();
+    emit statusChanged(m_order.id, nextStatus);
 }
 
 void OrderCardWidget::updateWaitTime() {
-    m_waitTimeLabel->setText("Waiting: " + calculateWaitTime());
+    m_waitTimeLabel->setText("⏱️ Waiting: " + calculateWaitTime());
 }
 
 QString OrderCardWidget::calculateWaitTime() const {
     qint64 seconds = m_order.createdAt.secsTo(QDateTime::currentDateTime());
     qint64 minutes = seconds / 60;
     qint64 secs = seconds % 60;
-    return QString("%1m %2s").arg(minutes).arg(secs, 2, 10, QChar('0'));
-}
-
-void OrderCardWidget::handleStatusChange(const QString &statusText) {
-    // Handled by signal in setupUI
+    
+    // Change color to red if waiting too long (> 15 mins)
+    if (minutes >= 15) {
+        m_waitTimeLabel->setStyleSheet("color: #F44336; font-size: 14px; font-weight: bold;");
+    }
+    
+    return QString("%1m %2s").arg(minutes, 2, 10, QChar('0')).arg(secs, 2, 10, QChar('0'));
 }

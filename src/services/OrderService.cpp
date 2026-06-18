@@ -112,3 +112,7 @@ std::vector<Order> OrderService::getActiveOrders() {
 std::vector<Order> OrderService::getOrdersBySeat(int seatId) {
     return m_repository->getOrdersBySeatId(seatId);
 }
+
+std::vector<OrderItem> OrderService::getOrderItems(int orderId) {
+    return m_repository->getOrderItems(orderId);
+}

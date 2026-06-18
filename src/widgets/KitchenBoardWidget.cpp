@@ -34,7 +34,7 @@ void KitchenBoardWidget::setupUI() {
         font.setBold(true);
         titleLabel->setFont(font);
         titleLabel->setAlignment(Qt::AlignCenter);
-        titleLabel->setStyleSheet("color: white; padding: 10px; background-color: #444; border-radius: 3px;");
+        titleLabel->setStyleSheet("color: #FFFFFF; background-color: #333333; padding: 10px; border-radius: 4px; font-size: 16px;");
         colLayout->addWidget(titleLabel);
 
         QScrollArea *scrollArea = new QScrollArea(columnWidget);
@@ -60,18 +60,19 @@ void KitchenBoardWidget::setupUI() {
 
 void KitchenBoardWidget::refreshBoard() {
     clearColumns();
-
     if (!m_service) return;
 
     std::vector<Order> orders = m_service->getActiveOrders();
-    Logger::info("Kitchen Board: Found " + QString::number(orders.size()) + " orders");
 
-    for (const auto &order : orders) {
+    for (auto &order : orders) { // Use reference so we can modify it
+        // Fetch items for this order
+        order.items = m_service->getOrderItems(order.id);
+
         OrderCardWidget *card = new OrderCardWidget(order);
         connect(card, &OrderCardWidget::statusChanged, this, &KitchenBoardWidget::handleOrderStatusChanged);
 
         QVBoxLayout *targetLayout = nullptr;
-        if (order.status == OrderStatus::Submitted || order.status == OrderStatus::Accepted) {
+        if (order.status == OrderStatus::Draft || order.status == OrderStatus::Submitted || order.status == OrderStatus::Accepted) {
             targetLayout = m_pendingLayout;
         } else if (order.status == OrderStatus::Preparing) {
             targetLayout = m_preparingLayout;
@@ -80,10 +81,7 @@ void KitchenBoardWidget::refreshBoard() {
         }
 
         if (targetLayout) {
-            // Insert before the stretch
             targetLayout->insertWidget(targetLayout->count() - 1, card);
-        } else {
-            Logger::warning("Order " + order.orderNumber + " has unknown status");
         }
     }
 }

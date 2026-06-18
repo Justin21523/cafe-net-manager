@@ -157,3 +157,30 @@ bool OrderRepository::updateOrderStatus(int orderId, OrderStatus status) {
     }
     return true;
 }
+
+std::vector<OrderItem> OrderRepository::getOrderItems(int orderId) {
+    std::vector<OrderItem> items;
+    QSqlQuery query(m_dbManager->database());
+    query.prepare("SELECT id, order_id, menu_item_id, item_name, quantity, unit_price, subtotal, note "
+                  "FROM order_items WHERE order_id = :order_id");
+    query.bindValue(":order_id", orderId);
+
+    if (!query.exec()) {
+        Logger::error("Failed to fetch order items: " + query.lastError().text());
+        return items;
+    }
+
+    while (query.next()) {
+        OrderItem item;
+        item.id = query.value("id").toInt();
+        item.orderId = query.value("order_id").toInt();
+        item.menuItemId = query.value("menu_item_id").toInt();
+        item.itemName = query.value("item_name").toString();
+        item.quantity = query.value("quantity").toInt();
+        item.unitPrice = query.value("unit_price").toInt();
+        item.subtotal = query.value("subtotal").toInt();
+        item.note = query.value("note").toString();
+        items.push_back(item);
+    }
+    return items;
+}

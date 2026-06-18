@@ -4,8 +4,9 @@
 #include "models/Order.h"
 
 class QLabel;
-class QComboBox;
+class QPushButton;
 class QTimer;
+class QVBoxLayout;
 
 class OrderCardWidget : public QWidget {
     Q_OBJECT
@@ -23,12 +24,15 @@ private slots:
 
 private:
     void setupUI();
+    void updateActionButton();
     QString calculateWaitTime() const;
 
     Order m_order;
-    QLabel *m_orderNumLabel;
-    QLabel *m_seatLabel;
+
+    // UI Elements
+    QLabel *m_headerLabel;
     QLabel *m_waitTimeLabel;
-    QComboBox *m_statusCombo;
+    QVBoxLayout *m_itemsLayout;
+    QPushButton *m_actionBtn;
     QTimer *m_timer;
 };
