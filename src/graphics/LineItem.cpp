@@ -1,14 +1,16 @@
 #include "graphics/LineItem.h"
 #include <QPainter>
+#include <QPainterPathStroker>
 
 LineItem::LineItem(const QPointF &start, const QPointF &end, QGraphicsItem *parent)
     : QGraphicsPathItem(parent), m_start(start), m_end(end) {
-    setPen(QPen(Qt::black, 2));
+    setPen(QPen(Qt::darkGray, 3));
     setFlag(QGraphicsItem::ItemIsSelectable, true);
-    updateLine(end);
+    setFlag(QGraphicsItem::ItemIsMovable, true);
+    updateEndPoint(end);
 }
 
-void LineItem::updateLine(const QPointF &end) {
+void LineItem::updateEndPoint(const QPointF &end) {
     m_end = end;
     QPainterPath path;
     path.moveTo(m_start);
@@ -17,15 +19,27 @@ void LineItem::updateLine(const QPointF &end) {
 }
 
 QRectF LineItem::boundingRect() const {
-    return QRectF(m_start, m_end).normalized().adjusted(-5, -5, 5, 5);
+    return QRectF(m_start, m_end).normalized().adjusted(-10, -10, 10, 10);
+}
+
+QPainterPath LineItem::shape() const {
+    QPainterPathStroker stroker;
+    stroker.setWidth(10);
+    return stroker.createStroke(path());
 }
 
 void LineItem::paint(QPainter *painter, const QStyleOptionGraphicsItem *option, QWidget *widget) {
     Q_UNUSED(widget);
+    QPen p = pen();
     if (isSelected()) {
-        painter->setPen(QPen(Qt::yellow, 3));
-    } else {
-        painter->setPen(QPen(Qt::black, 2));
+        p.setColor(Qt::yellow);
+        p.setWidth(4);
     }
+    painter->setPen(p);
     painter->drawLine(m_start, m_end);
+
+    // Draw endpoints
+    painter->setBrush(Qt::darkGray);
+    painter->drawEllipse(m_start, 4, 4);
+    painter->drawEllipse(m_end, 4, 4);
 }

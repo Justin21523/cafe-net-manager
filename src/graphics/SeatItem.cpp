@@ -13,21 +13,15 @@ QRectF SeatItem::boundingRect() const {
 
 void SeatItem::paint(QPainter *painter, const QStyleOptionGraphicsItem *option, QWidget *widget) {
     Q_UNUSED(option); Q_UNUSED(widget);
-    
-    QColor fillColor = getStatusColor();
-    QColor borderColor = isSelected() ? Qt::yellow : Qt::black;
-    
-    painter->setPen(QPen(borderColor, isSelected() ? 3 : 1));
-    painter->setBrush(QBrush(fillColor));
-    
-    // FIX 2: Use the base class helper to draw the correct shape!
-    drawShape(painter);
+    painter->setPen(QPen(isSelected() ? Qt::yellow : Qt::black, isSelected() ? 2 : 1));
+    painter->setBrush(QBrush(getStatusColor()));
+    drawShape(painter); // Use base class to respect ShapeType
+    drawResizeHandles(painter); // Draw handles on top
 
     painter->setPen(Qt::black);
-    QFont font = painter->font();
-    font.setBold(true); font.setPointSize(10);
+    QFont font = painter->font(); font.setBold(true); font.setPointSize(9);
     painter->setFont(font);
-    painter->drawText(boundingRect(), Qt::AlignCenter, m_seat.code);
+    painter->drawText(QRectF(0, 0, m_size.width(), m_size.height()), Qt::AlignCenter, m_seat.code);
 }
 
 void SeatItem::updateSeatData(const Seat &seat) {

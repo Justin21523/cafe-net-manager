@@ -24,7 +24,23 @@ void PosMenuPanel::setupUI() {
     // Search Bar
     m_searchEdit = new QLineEdit(this);
     m_searchEdit->setPlaceholderText("🔍 Search menu items...");
-    m_searchEdit->setStyleSheet("padding: 8px; font-size: 14px; border: 1px solid #ccc; border-radius: 4px;");
+    m_searchEdit->setStyleSheet(R"(
+        QLineEdit {
+            background-color: #333333;
+            color: #ffffff;
+            border: 1px solid #555555;
+            border-radius: 4px;
+            padding: 8px;
+            font-size: 14px;
+        }
+        QLineEdit:focus {
+            border: 1px solid #4CAF50;
+        }
+        QLineEdit::placeholder {
+            color: #888888;
+        }
+    )");
+        
     connect(m_searchEdit, &QLineEdit::textChanged, this, &PosMenuPanel::onSearchTextChanged);
     mainLayout->addWidget(m_searchEdit);
 
@@ -33,7 +49,27 @@ void PosMenuPanel::setupUI() {
     // Left: Categories
     m_categoryList = new QListWidget(this);
     m_categoryList->setFixedWidth(150);
-    m_categoryList->setStyleSheet("QListWidget::item { padding: 10px; font-size: 14px; } QListWidget::item:selected { background-color: #4CAF50; color: white; }");
+    // 在 setupUI() 中，修改 m_categoryList 的樣式
+    m_categoryList->setStyleSheet(R"(
+        QListWidget {
+            background-color: #2b2b2b;
+            border: none;
+            color: #ffffff;
+            font-size: 14px;
+        }
+        QListWidget::item {
+            padding: 12px 10px;
+            border-bottom: 1px solid #444444;
+        }
+        QListWidget::item:selected {
+            background-color: #4CAF50;
+            color: #ffffff;
+            font-weight: bold;
+        }
+        QListWidget::item:hover {
+            background-color: #3d3d3d;
+        }
+    )"); 
     connect(m_categoryList, &QListWidget::currentRowChanged, this, &PosMenuPanel::onCategoryChanged);
     contentLayout->addWidget(m_categoryList);
 
@@ -86,20 +122,23 @@ QPushButton* PosMenuPanel::createMenuCard(const MenuItem &item) {
     card->setCursor(Qt::PointingHandCursor);
     
     QString priceStr = QString("$%1").arg(item.price / 100.0, 0, 'f', 2);
-    card->setText(QString("<b>%1</b><br><span style='color:green; font-size:16px;'>%2</span>")
+    card->setText(QString("<b style='color:#333333;'>%1</b><br><span style='color:#4CAF50; font-size:16px; font-weight:bold;'>%2</span>")
                   .arg(item.name).arg(priceStr));
     
     card->setStyleSheet(R"(
         QPushButton {
-            background-color: #f9f9f9;
-            border: 1px solid #ddd;
+            background-color: #f5f5f5;
+            border: 2px solid #dddddd;
             border-radius: 8px;
             text-align: center;
-            font-size: 14px;
+            padding: 10px;
         }
         QPushButton:hover {
-            background-color: #e0f2f1;
-            border: 1px solid #4CAF50;
+            background-color: #e8f5e9;
+            border: 2px solid #4CAF50;
+        }
+        QPushButton:pressed {
+            background-color: #c8e6c9;
         }
     )");
 

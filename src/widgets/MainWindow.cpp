@@ -55,6 +55,7 @@ void MainWindow::initPages(const std::vector<Seat> &seats) {
     
     // 注入 SeatSessionService 和 OrderService 給 FloorPlanPage
     m_floorPlanPage = new FloorPlanPage(
+        m_seatService,
         m_sessionService,
         m_orderService,
         m_stackedWidget

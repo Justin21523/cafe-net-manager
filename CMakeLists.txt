@@ -105,6 +105,7 @@ add_executable(cafe-net-manager
     src/graphics/SeatItem.cpp include/graphics/SeatItem.h
     src/graphics/WallItem.cpp include/graphics/WallItem.h
     src/graphics/CounterItem.cpp include/graphics/CounterItem.h
+    src/graphics/EnvironmentItem.cpp include/graphics/EnvironmentItem.h
     
     # V2.1 Floor Plan Editor (Widgets)
     src/widgets/FloorPlanView.cpp include/widgets/FloorPlanView.h
@@ -140,7 +141,10 @@ add_executable(cafe-net-manager
     src/services/AuditService.cpp
     include/services/AuditService.h
     include/utils/DatabaseTransaction.h
-    
+    # Phase 4 Floor Plan Deep Enhancement
+    src/widgets/SeatInfoDialog.cpp
+    include/widgets/SeatInfoDialog.h
+
  )
 
 target_include_directories(cafe-net-manager PRIVATE

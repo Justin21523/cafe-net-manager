@@ -10,7 +10,6 @@ class FloorPlanView : public QGraphicsView {
     Q_OBJECT
 public:
     explicit FloorPlanView(FloorPlanScene *scene, QWidget *parent = nullptr);
-
     void setCurrentTool(ObjectType type, ShapeType shape);
     void setSelectMode();
     void setEditMode(bool enabled);
@@ -18,7 +17,7 @@ public:
     QUndoStack* undoStack() { return &m_undoStack; }
 
 signals:
-    void seatClickedInPreview(int seatId);
+    void seatClickedInPreview(int seatId); // For popup
 
 protected:
     void mousePressEvent(QMouseEvent *event) override;
@@ -31,16 +30,10 @@ private:
     ShapeType m_currentShape = ShapeType::Rectangle;
     bool m_isSelectMode = true;
     bool m_isEditMode = false;
-    
     QUndoStack m_undoStack;
-    
-    // Line drawing state
+
+    // Line drawing
     bool m_isDrawingLine = false;
     QPointF m_lineStartPos;
     LineItem *m_tempLine = nullptr;
-    
-    // Move/Resize tracking for Undo
-    FloorPlanItem *m_draggedItem = nullptr;
-    QPointF m_itemOldPos;
-    QSizeF m_itemOldSize;
 };

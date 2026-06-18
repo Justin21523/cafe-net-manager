@@ -46,32 +46,29 @@ QPushButton* SidebarWidget::createNavButton(const QString &text, int index) {
     btn->setCheckable(true);
     btn->setCursor(Qt::PointingHandCursor);
     
-    // Modern dark theme QSS
     btn->setStyleSheet(R"(
         QPushButton {
-            background-color: #333333;
-            color: #EEEEEE;
+            background-color: transparent;
+            color: #cccccc;
             border: none;
             padding: 12px 15px;
             text-align: left;
             border-radius: 6px;
-            font-size: 14px;
+            font-size: 15px;
         }
         QPushButton:hover {
-            background-color: #444444;
+            background-color: #2d2d2d;
+            color: #ffffff;
         }
         QPushButton:checked {
             background-color: #4CAF50;
-            color: white;
+            color: #ffffff;
             font-weight: bold;
         }
     )");
     
     connect(btn, &QPushButton::clicked, this, [this, index, btn]() {
-        // Uncheck all other buttons to ensure single selection
-        for (QPushButton* b : m_buttons) {
-            b->setChecked(false);
-        }
+        for (QPushButton* b : m_buttons) b->setChecked(false);
         btn->setChecked(true);
         emit navigateTo(index);
     });

@@ -240,78 +240,113 @@ bool DatabaseManager::initializeSchema() {
 
 bool DatabaseManager::seedDemoData() {
     QSqlQuery query(m_db);
-
-    // Check if seats table is empty to avoid duplicate seeding
+    
+    // Only seed if seats table is empty
     query.exec("SELECT COUNT(*) FROM seats");
-    if (query.next() && query.value(0).toInt() > 0) {
-        Logger::info("Demo data already exists. Skipping seed.");
-        return true;
-    }
+    if (query.next() && query.value(0).toInt() > 0) return true;
 
     Logger::info("Seeding demo data...");
 
-    // Seed Menu Categories
-    QStringList categories = {"Coffee", "Tea", "Dessert", "Main Course", "Internet Cafe"};
-    for (int i = 0; i < categories.size(); ++i) {
-        query.prepare("INSERT INTO menu_categories (name, sort_order) VALUES (:name, :order)");
-        query.bindValue(":name", categories[i]);
-        query.bindValue(":order", i);
-        if (!query.exec()) {
-            Logger::error("Failed to insert category: " + query.lastError().text());
-            return false;
-        }
+    // Seed categories
+    QStringList cats = {"Coffee", "Tea", "Dessert", "Snack", "Beverage"};
+    for (int i = 0; i < cats.size(); ++i) {
+        query.prepare("INSERT INTO menu_categories (name, sort_order) VALUES (:name, :sort)");
+        query.bindValue(":name", cats[i]);
+        query.bindValue(":sort", i);
+        query.exec();
     }
 
-    // Seed Menu Items (Prices are in cents, e.g., 12000 = $120.00)
-    // We assume category IDs are 1 to 5 based on insertion order
-    struct MenuItemData {
-        int categoryId;
-        QString name;
-        int price;
+    // Seed menu items
+    struct ItemSeed { QString cat; QString name; int price; };
+    std::vector<ItemSeed> items = {
+        {"Coffee", "Espresso", 350}, {"Coffee", "Latte", 450}, {"Coffee", "Cappuccino", 450},
+        {"Coffee", "Americano", 350}, {"Coffee", "Mocha", 500},
+        {"Tea", "Green Tea", 300}, {"Tea", "Earl Grey", 300}, {"Tea", "Matcha Latte", 480},
+        {"Dessert", "Cheesecake", 550}, {"Dessert", "Tiramisu", 580},
+        {"Snack", "Fries", 350}, {"Snack", "Toast", 280},
+        {"Beverage", "Orange Juice", 380}, {"Beverage", "Sparkling Water", 200}
     };
-
-    QList<MenuItemData> items = {
-        {1, "Espresso", 8000},
-        {1, "Cappuccino", 12000},
-        {1, "Latte", 13000},
-        {2, "Green Tea", 10000},
-        {2, "Black Tea", 10000},
-        {3, "Cheesecake", 15000},
-        {3, "Chocolate Muffin", 12000},
-        {4, "Pasta", 22000},
-        {4, "Steak", 35000},
-        {5, "1 Hour Internet", 5000},
-        {5, "3 Hours Internet", 12000}
-    };
-
     for (const auto &item : items) {
-        query.prepare("INSERT INTO menu_items (category_id, name, price) VALUES (:cat_id, :name, :price)");
-        query.bindValue(":cat_id", item.categoryId);
+        query.prepare("INSERT INTO menu_items (category_id, name, price, is_available, is_active, cost) "
+                      "SELECT id, :name, :price, 1, 1, :cost FROM menu_categories WHERE name = :cat");
         query.bindValue(":name", item.name);
         query.bindValue(":price", item.price);
-        if (!query.exec()) {
-            Logger::error("Failed to insert menu item: " + query.lastError().text());
-            return false;
-        }
+        query.bindValue(":cost", item.price / 3);
+        query.bindValue(":cat", item.cat);
+        query.exec();
     }
 
-    // Seed Seats
-    QList<QString> seatCodes = {"A1", "A2", "A3", "B1", "B2", "C1"};
-    for (int i = 0; i < seatCodes.size(); ++i) {
-        query.prepare("INSERT INTO seats (code, name, area, capacity, x, y) VALUES (:code, :name, :area, :cap, :x, :y)");
-        query.bindValue(":code", seatCodes[i]);
-        query.bindValue(":name", "Seat " + seatCodes[i]);
-        query.bindValue(":area", "Main Hall");
-        query.bindValue(":cap", 2);
-        query.bindValue(":x", (i % 3) * 120);
-        query.bindValue(":y", (i / 3) * 120);
-        if (!query.exec()) {
-            Logger::error("Failed to insert seat: " + query.lastError().text());
-            return false;
-        }
+    // Seed walls (environment objects are stored as seats with type='wall' for simplicity,
+    // or we just create them in code. For DB persistence, let's use the seats table creatively)
+    // Actually, walls are QGraphicsItems, not DB-backed in the same way.
+    // Let's seed a rich set of seats instead.
+
+    struct SeatSeed {
+        QString code, name, area, type;
+        int x, y, w, h, cap;
+        bool power, quiet;
+    };
+
+    std::vector<SeatSeed> seats = {
+        // Bar counter seats (top row)
+        {"B1", "Bar 1", "Bar", "BarSeat", 100, 60, 50, 50, 1, false, false},
+        {"B2", "Bar 2", "Bar", "BarSeat", 160, 60, 50, 50, 1, false, false},
+        {"B3", "Bar 3", "Bar", "BarSeat", 220, 60, 50, 50, 1, false, false},
+        {"B4", "Bar 4", "Bar", "BarSeat", 280, 60, 50, 50, 1, false, false},
+        {"B5", "Bar 5", "Bar", "BarSeat", 340, 60, 50, 50, 1, true, false},
+        {"B6", "Bar 6", "Bar", "BarSeat", 400, 60, 50, 50, 1, true, false},
+
+        // Booth seats (left wall)
+        {"L1", "Booth A", "Lounge", "Booth", 40, 180, 100, 80, 4, true, true},
+        {"L2", "Booth B", "Lounge", "Booth", 40, 300, 100, 80, 4, true, true},
+        {"L3", "Booth C", "Lounge", "Booth", 40, 420, 100, 80, 4, true, true},
+
+        // Center tables (2x3 grid)
+        {"C1", "Table 1", "Main", "SquareTable", 220, 200, 80, 80, 4, false, false},
+        {"C2", "Table 2", "Main", "SquareTable", 340, 200, 80, 80, 4, false, false},
+        {"C3", "Table 3", "Main", "SquareTable", 460, 200, 80, 80, 4, false, false},
+        {"C4", "Table 4", "Main", "SquareTable", 220, 340, 80, 80, 4, true, false},
+        {"C5", "Table 5", "Main", "SquareTable", 340, 340, 80, 80, 4, true, false},
+        {"C6", "Table 6", "Main", "SquareTable", 460, 340, 80, 80, 4, true, false},
+
+        // Window seats (right side)
+        {"W1", "Window 1", "Window", "CoupleSeat", 620, 180, 60, 60, 2, true, true},
+        {"W2", "Window 2", "Window", "CoupleSeat", 620, 280, 60, 60, 2, true, true},
+        {"W3", "Window 3", "Window", "CoupleSeat", 620, 380, 60, 60, 2, true, true},
+
+        // Study desks (bottom row)
+        {"S1", "Study 1", "Study", "StudyDesk", 200, 500, 60, 50, 1, true, true},
+        {"S2", "Study 2", "Study", "StudyDesk", 280, 500, 60, 50, 1, true, true},
+        {"S3", "Study 3", "Study", "StudyDesk", 360, 500, 60, 50, 1, true, true},
+        {"S4", "Study 4", "Study", "StudyDesk", 440, 500, 60, 50, 1, true, true},
+        {"S5", "Study 5", "Study", "StudyDesk", 520, 500, 60, 50, 1, true, true},
+
+        // Private room
+        {"P1", "VIP Room", "Private", "PrivateRoom", 580, 460, 120, 100, 8, true, true},
+    };
+
+    for (const auto &s : seats) {
+        query.prepare("INSERT INTO seats (code, name, area, type, x, y, width, height, status, capacity, has_power_outlet, is_quiet_zone) "
+                      "VALUES (:code, :name, :area, :type, :x, :y, :w, :h, 'Available', :cap, :power, :quiet)");
+        query.bindValue(":code", s.code);
+        query.bindValue(":name", s.name);
+        query.bindValue(":area", s.area);
+        query.bindValue(":type", s.type);
+        query.bindValue(":x", s.x);
+        query.bindValue(":y", s.y);
+        query.bindValue(":w", s.w);
+        query.bindValue(":h", s.h);
+        query.bindValue(":cap", s.cap);
+        query.bindValue(":power", s.power ? 1 : 0);
+        query.bindValue(":quiet", s.quiet ? 1 : 0);
+        query.exec();
     }
 
-    Logger::info("Demo data seeded successfully.");
+    // Seed customers
+    query.exec("INSERT OR IGNORE INTO customers (name, phone, email, total_visits, total_spent) VALUES ('Alice Wang', '0912345678', 'alice@test.com', 12, 35000)");
+    query.exec("INSERT OR IGNORE INTO customers (name, phone, email, total_visits, total_spent) VALUES ('Bob Chen', '0987654321', 'bob@test.com', 5, 12000)");
+
+    Logger::info(QString("Seeded %1 seats, %2 categories, %3 items.").arg(seats.size()).arg(cats.size()).arg(items.size()));
     return true;
 }
 

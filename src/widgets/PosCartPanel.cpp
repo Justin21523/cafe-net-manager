@@ -16,14 +16,15 @@ PosCartPanel::PosCartPanel(OrderService *service, QWidget *parent)
 void PosCartPanel::setupUI() {
     QVBoxLayout *layout = new QVBoxLayout(this);
     layout->setContentsMargins(15, 15, 15, 15);
-    setStyleSheet("background-color: #f5f5f5; border-left: 1px solid #ddd;");
+    setStyleSheet("background-color: #1e1e1e; border-left: 1px solid #333;");
 
     // Header: Seat Info
     m_seatInfoLabel = new QLabel("🪑 No Seat Selected", this);
     QFont headerFont = m_seatInfoLabel->font();
-    headerFont.setPointSize(14); headerFont.setBold(true);
+    headerFont.setPointSize(14);
+    headerFont.setBold(true);
     m_seatInfoLabel->setFont(headerFont);
-    m_seatInfoLabel->setStyleSheet("background-color: #e0e0e0; padding: 10px; border-radius: 4px;");
+    m_seatInfoLabel->setStyleSheet("background-color: #2d2d2d; color: #ffffff; padding: 10px; border-radius: 4px;");
     layout->addWidget(m_seatInfoLabel);
 
     // Cart Table
@@ -37,15 +38,37 @@ void PosCartPanel::setupUI() {
     m_cartTable->horizontalHeader()->setSectionResizeMode(4, QHeaderView::ResizeToContents);
     m_cartTable->setEditTriggers(QAbstractItemView::NoEditTriggers);
     m_cartTable->verticalHeader()->setVisible(false);
+    
+    // Dark theme for table
+    m_cartTable->setStyleSheet(R"(
+        QTableWidget {
+            background-color: #2d2d2d;
+            color: #ffffff;
+            border: 1px solid #444444;
+            gridline-color: #444444;
+        }
+        QTableWidget::item {
+            padding: 5px;
+        }
+        QHeaderView::section {
+            background-color: #3d3d3d;
+            color: #ffffff;
+            padding: 8px;
+            border: 1px solid #555555;
+            font-weight: bold;
+        }
+    )");
+    
     layout->addWidget(m_cartTable, 1);
 
     // Totals
     m_totalLabel = new QLabel("Total: $0.00", this);
     QFont totalFont = m_totalLabel->font();
-    totalFont.setPointSize(18); totalFont.setBold(true);
+    totalFont.setPointSize(18);
+    totalFont.setBold(true);
     m_totalLabel->setFont(totalFont);
     m_totalLabel->setAlignment(Qt::AlignRight);
-    m_totalLabel->setStyleSheet("color: #d32f2f; padding: 10px;");
+    m_totalLabel->setStyleSheet("color: #4CAF50; padding: 10px; background-color: #2d2d2d; border-radius: 4px;");
     layout->addWidget(m_totalLabel);
 
     // Action Buttons
@@ -53,13 +76,45 @@ void PosCartPanel::setupUI() {
     
     m_sendBtn = new QPushButton("🍳 Send to Kitchen", this);
     m_sendBtn->setMinimumHeight(50);
-    m_sendBtn->setStyleSheet("background-color: #2196F3; color: white; font-size: 16px; font-weight: bold; border-radius: 4px;");
+    m_sendBtn->setStyleSheet(R"(
+        QPushButton {
+            background-color: #2196F3;
+            color: #ffffff;
+            font-size: 16px;
+            font-weight: bold;
+            border-radius: 4px;
+            border: none;
+        }
+        QPushButton:hover {
+            background-color: #1976D2;
+        }
+        QPushButton:disabled {
+            background-color: #555555;
+            color: #888888;
+        }
+    )");
     connect(m_sendBtn, &QPushButton::clicked, this, &PosCartPanel::sendToKitchenRequested);
     btnLayout->addWidget(m_sendBtn);
 
     m_checkoutBtn = new QPushButton("💳 Checkout", this);
     m_checkoutBtn->setMinimumHeight(50);
-    m_checkoutBtn->setStyleSheet("background-color: #4CAF50; color: white; font-size: 16px; font-weight: bold; border-radius: 4px;");
+    m_checkoutBtn->setStyleSheet(R"(
+        QPushButton {
+            background-color: #4CAF50;
+            color: #ffffff;
+            font-size: 16px;
+            font-weight: bold;
+            border-radius: 4px;
+            border: none;
+        }
+        QPushButton:hover {
+            background-color: #388E3C;
+        }
+        QPushButton:disabled {
+            background-color: #555555;
+            color: #888888;
+        }
+    )");
     connect(m_checkoutBtn, &QPushButton::clicked, this, &PosCartPanel::checkoutRequested);
     btnLayout->addWidget(m_checkoutBtn);
 
@@ -70,10 +125,10 @@ void PosCartPanel::setTargetSeat(int seatId, const QString &seatCode) {
     m_targetSeatId = seatId;
     if (seatId == -1) {
         m_seatInfoLabel->setText("🪑 No Seat Selected (Walk-in)");
-        m_seatInfoLabel->setStyleSheet("background-color: #fff3e0; padding: 10px; border-radius: 4px; color: #e65100;");
+        m_seatInfoLabel->setStyleSheet("background-color: #3d2d1e; color: #ff9800; padding: 10px; border-radius: 4px; font-weight: bold;");
     } else {
         m_seatInfoLabel->setText("🪑 Seat: " + seatCode);
-        m_seatInfoLabel->setStyleSheet("background-color: #e8f5e9; padding: 10px; border-radius: 4px; color: #2e7d32;");
+        m_seatInfoLabel->setStyleSheet("background-color: #1e3d2d; color: #4CAF50; padding: 10px; border-radius: 4px; font-weight: bold;");
     }
 }
 
