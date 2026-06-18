@@ -117,7 +117,16 @@ add_executable(cafe-net-manager
     include/utils/Command.h
     src/graphics/LineItem.cpp
     include/graphics/LineItem.h
-        
+     # V2.2 Seat Operation Panel
+    src/widgets/SeatOperationPanel.cpp
+    include/widgets/SeatOperationPanel.h  
+    # V2.3 POS Order Page
+    src/widgets/ModifierDialog.cpp
+    include/widgets/ModifierDialog.h
+    src/widgets/PosMenuPanel.cpp
+    include/widgets/PosMenuPanel.h
+    src/widgets/PosCartPanel.cpp
+    include/widgets/PosCartPanel.h     
 )
 
 target_include_directories(cafe-net-manager PRIVATE

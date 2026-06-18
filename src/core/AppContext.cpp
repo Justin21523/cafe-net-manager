@@ -31,8 +31,6 @@ AppContext::AppContext(QObject *parent)
 
     m_customerRepository = new CustomerRepository(m_databaseManager);
     
-    m_seatRepository = new SeatRepository(m_databaseManager);
-    
     Logger::info("AppContext initialized.");
 }
 

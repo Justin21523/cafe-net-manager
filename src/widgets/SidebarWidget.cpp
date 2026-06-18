@@ -27,7 +27,7 @@ void SidebarWidget::setupUI() {
     m_buttons.append(createNavButton("🪑 Floor Plan", 1));
     m_buttons.append(createNavButton("🛒 POS / Orders", 2));
     m_buttons.append(createNavButton("👨‍🍳 Kitchen Board", 3));
-    m_buttons.append(createNavButton("⚙️ Admin (Soon)", 4));
+    m_buttons.append(createNavButton("⚙️ Admin", 4));
     
     for (QPushButton* btn : m_buttons) {
         layout->addWidget(btn);

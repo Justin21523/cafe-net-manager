@@ -11,6 +11,7 @@ class OrderRepository;
 struct CartItem {
     MenuItem menuItem;
     int quantity = 1;
+    QString note; // NEW: For modifiers or special requests
 };
 
 class OrderService {
@@ -19,6 +20,7 @@ public:
 
     // Cart operations
     void addToCart(const MenuItem &item);
+    void addToCart(const MenuItem &item, const QString &note);
     void removeFromCart(int menuItemId);
     void updateQuantity(int menuItemId, int quantity);
     void clearCart();
@@ -29,6 +31,8 @@ public:
     bool submitOrder(int seatId, int sessionId);
     bool updateOrderStatus(int orderId, OrderStatus status);
     std::vector<Order> getActiveOrders();
+
+    std::vector<Order> getOrdersBySeat(int seatId);
 
 private:
     OrderRepository *m_repository;

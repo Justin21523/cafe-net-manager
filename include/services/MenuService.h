@@ -11,6 +11,7 @@ public:
     explicit MenuService(MenuRepository *repository);
 
     std::vector<MenuCategory> loadCategories();
+    std::vector<MenuItem> loadAllItems();
     std::vector<MenuItem> loadItemsByCategory(int categoryId);
 
 private:

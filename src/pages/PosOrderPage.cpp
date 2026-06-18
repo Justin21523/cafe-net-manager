@@ -1,32 +1,42 @@
 #include "pages/PosOrderPage.h"
-#include "widgets/MenuBrowserWidget.h"
-#include "widgets/CartWidget.h"
+#include "widgets/PosMenuPanel.h"
+#include "widgets/PosCartPanel.h"
 #include "services/MenuService.h"
 #include "services/OrderService.h"
-#include <QSplitter>
-#include <QVBoxLayout>
 
-PosOrderPage::PosOrderPage(QWidget *parent) : QWidget(parent) {
-    QVBoxLayout *layout = new QVBoxLayout(this);
+#include <QHBoxLayout>
+
+PosOrderPage::PosOrderPage(QWidget *parent) : QWidget(parent) {}
+
+void PosOrderPage::init(MenuService *menuSvc, OrderService *orderSvc) {
+    m_orderService = orderSvc;
+    QHBoxLayout *layout = new QHBoxLayout(this);
     layout->setContentsMargins(0, 0, 0, 0);
+    layout->setSpacing(0);
+
+    m_menuPanel = new PosMenuPanel(menuSvc, this);
+    m_cartPanel = new PosCartPanel(orderSvc, this);
+
+    layout->addWidget(m_menuPanel, 7); // 70% width
+    layout->addWidget(m_cartPanel, 3); // 30% width
+
+    // Connect signals
+    connect(m_menuPanel, &PosMenuPanel::itemAddRequested, 
+            m_cartPanel, &PosCartPanel::handleAddItem);
+    
+    connect(m_cartPanel, &PosCartPanel::sendToKitchenRequested, this, [this]() {
+        if (m_orderService->submitOrder(m_targetSeatId, -1)) {
+            emit orderSubmitted();
+            m_cartPanel->refreshCart();
+        }
+    });
+    
+    connect(m_cartPanel, &PosCartPanel::checkoutRequested, this, &PosOrderPage::checkoutRequested);
 }
 
-void PosOrderPage::init(MenuService *menuService, OrderService *orderService) {
-    QSplitter *splitter = new QSplitter(Qt::Horizontal, this);
-    
-    m_menuBrowser = new MenuBrowserWidget(menuService, splitter);
-    m_cartWidget = new CartWidget(orderService, splitter);
-    
-    splitter->addWidget(m_menuBrowser);
-    splitter->addWidget(m_cartWidget);
-    splitter->setSizes({700, 400});
-    
-    this->layout()->addWidget(splitter);
-    
-    connect(m_menuBrowser, &MenuBrowserWidget::itemAddedToCart, this, &PosOrderPage::itemAddedToCart);
-    connect(m_cartWidget, &CartWidget::orderSubmitted, this, &PosOrderPage::orderSubmitted);
-}
-
-void PosOrderPage::setSelectedSeat(int seatId, int sessionId) {
-    if (m_cartWidget) m_cartWidget->setSelectedSeat(seatId, sessionId);
+void PosOrderPage::setTargetSeat(int seatId, const QString &seatCode) {
+    m_targetSeatId = seatId;
+    if (m_cartPanel) {
+        m_cartPanel->setTargetSeat(seatId, seatCode);
+    }
 }

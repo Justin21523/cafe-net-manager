@@ -30,6 +30,31 @@ std::vector<MenuCategory> MenuRepository::getAllCategories() {
     return categories;
 }
 
+std::vector<MenuItem> MenuRepository::getAllItems() {
+    std::vector<MenuItem> items;
+    QSqlQuery query(m_dbManager->database());
+
+    query.prepare("SELECT id, category_id, name, description, price, is_available "
+                  "FROM menu_items WHERE is_active = 1 ORDER BY category_id ASC, name ASC");
+
+    if (!query.exec()) {
+        Logger::error("Failed to fetch all menu items: " + query.lastError().text());
+        return items;
+    }
+
+    while (query.next()) {
+        MenuItem item;
+        item.id = query.value("id").toInt();
+        item.categoryId = query.value("category_id").toInt();
+        item.name = query.value("name").toString();
+        item.description = query.value("description").toString();
+        item.price = query.value("price").toInt();
+        item.isAvailable = query.value("is_available").toBool();
+        items.push_back(item);
+    }
+    return items;
+}
+
 std::vector<MenuItem> MenuRepository::getItemsByCategoryId(int categoryId) {
     std::vector<MenuItem> items;
     QSqlQuery query(m_dbManager->database());

@@ -3,9 +3,6 @@
 #include "core/AppContext.h"
 #include "database/DatabaseManager.h"
 #include "services/SeatService.h"
-#include "services/SeatSessionService.h"
-#include "services/MenuService.h"
-#include "services/OrderService.h"
 #include "database/SeatRepository.h"
 #include "widgets/MainWindow.h"
 #include "utils/Logger.h"
@@ -25,10 +22,6 @@ int main(int argc, char *argv[]) {
     }
 
     SeatService *seatService = context->seatService();
-    SeatSessionService *sessionService = context->seatSessionService();
-    MenuService *menuService = context->menuService();
-    OrderService *orderService = context->orderService();
-    SeatRepository *seatRepo = context->seatRepository();
 
     std::vector<Seat> seats = seatService->loadAllSeats();
 
@@ -36,13 +29,18 @@ int main(int argc, char *argv[]) {
     
     // 1. Inject Dependencies
     window.setDatabaseManager(dbManager);
-    window.setServices(seatService, sessionService, menuService, orderService, seatRepo);
-    
+    window.setServices(
+        context->seatService(),
+        context->seatSessionService(),
+        context->menuService(),
+        context->orderService(),
+        context->seatRepository()
+    );
+
     // 2. Initialize Pages (Must be after setServices)
-    window.initPages(); 
+    window.initPages(seats);
     
     // 3. Load Data & Show
-    window.initializeSeatMap(seats);
     window.show();
 
     Logger::info("Application started successfully.");

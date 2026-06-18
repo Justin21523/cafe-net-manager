@@ -74,6 +74,10 @@ bool SeatSessionService::updateSessionTime(int sessionId) {
     return true;
 }
 
+std::optional<SeatSession> SeatSessionService::getActiveSession(int seatId) const {
+    return m_sessionRepo->getActiveSessionBySeatId(seatId);
+}
+
 bool SeatSessionService::endSession(int seatId) {
     auto sessionOpt = m_sessionRepo->getActiveSessionBySeatId(seatId);
     if (!sessionOpt.has_value()) {

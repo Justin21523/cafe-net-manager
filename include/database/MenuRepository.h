@@ -11,6 +11,7 @@ public:
     explicit MenuRepository(DatabaseManager *dbManager);
 
     std::vector<MenuCategory> getAllCategories();
+    std::vector<MenuItem> getAllItems();
     std::vector<MenuItem> getItemsByCategoryId(int categoryId);
 
 private:

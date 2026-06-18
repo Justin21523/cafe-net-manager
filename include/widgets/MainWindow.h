@@ -12,6 +12,7 @@ class DashboardPage;
 class FloorPlanPage;
 class PosOrderPage;
 class KitchenPage;
+class AdminPage;
 
 class SeatService;
 class SeatSessionService;
@@ -34,11 +35,14 @@ public:
                      SeatRepository *seatRepository);
                      
     // Initialize Pages (Must be called AFTER setServices)
-    void initPages(); 
+    void initPages(const std::vector<Seat> &seats); 
     
     // Load initial data
     void initializeSeatMap(const std::vector<Seat> &seats);
 
+signals:
+    void navigateToPosPage(int seatId); // 用於從座位工作台跳轉到 POS
+    
 private slots:
     void handleNavigateTo(int index);
     
@@ -51,7 +55,9 @@ private slots:
     // POS signals
     void handleItemAddedToCart(const MenuItem &item);
     void handleOrderSubmitted();
-
+    void handleNavigateToPos(int seatId);
+    void handleCheckoutFromSeat(int seatId);
+    
 private:
     void setupUI();
     void connectSignals();
@@ -65,6 +71,7 @@ private:
     FloorPlanPage *m_floorPlanPage = nullptr;
     PosOrderPage *m_posOrderPage = nullptr;
     KitchenPage *m_kitchenPage = nullptr;
+    AdminPage *m_adminPage = nullptr;
 
     // Services & DB
     DatabaseManager *m_dbManager = nullptr;

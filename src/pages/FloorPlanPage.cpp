@@ -3,16 +3,15 @@
 #include "widgets/FloorPlanView.h"
 #include "widgets/ToolPalette.h"
 #include "widgets/InspectorPanel.h"
+#include "widgets/SeatOperationPanel.h"
 #include "graphics/SeatItem.h"
 #include "graphics/FloorPlanItem.h"
 
 #include <QHBoxLayout>
-#include <QVBoxLayout>
-#include <QPushButton>
-#include <QLabel>
-#include <QFrame>
+#include <QStackedWidget>
 
-FloorPlanPage::FloorPlanPage(QWidget *parent) : QWidget(parent) {
+FloorPlanPage::FloorPlanPage(SeatSessionService *sessionSvc, OrderService *orderSvc, QWidget *parent)
+    : QWidget(parent) {
     QHBoxLayout *mainLayout = new QHBoxLayout(this);
     mainLayout->setContentsMargins(0, 0, 0, 0);
 
@@ -26,37 +25,16 @@ FloorPlanPage::FloorPlanPage(QWidget *parent) : QWidget(parent) {
     m_view = new FloorPlanView(m_scene, this);
     mainLayout->addWidget(m_view, 1);
 
-    // 3. Right: Inspector + Session Controls
-    QWidget *rightPanel = new QWidget(this);
-    rightPanel->setFixedWidth(280);
-    QVBoxLayout *rightLayout = new QVBoxLayout(rightPanel);
-    
+    // 3. Right: Inspector in edit mode, seat operations in preview mode
+    m_rightStack = new QStackedWidget(this);
+    m_rightStack->setFixedWidth(320);
+
     m_inspector = new InspectorPanel(this);
-    rightLayout->addWidget(m_inspector, 1); // Stretch to fill top
-    
-    // Separator
-    QFrame *line = new QFrame(this);
-    line->setFrameShape(QFrame::HLine);
-    line->setFrameShadow(QFrame::Sunken);
-    rightLayout->addWidget(line);
-    
-    // Session Controls UI
-    m_selectedSeatLabel = new QLabel("No seat selected", this);
-    m_selectedSeatLabel->setStyleSheet("font-weight: bold; font-size: 14px; padding: 5px;");
-    rightLayout->addWidget(m_selectedSeatLabel);
-    
-    m_startSessionBtn = new QPushButton("Start Session", this);
-    m_startSessionBtn->setEnabled(false);
-    m_startSessionBtn->setStyleSheet("background-color: #4CAF50; color: white; padding: 8px; border-radius: 4px;");
-    rightLayout->addWidget(m_startSessionBtn);
-    
-    m_endSessionBtn = new QPushButton("End Session", this);
-    m_endSessionBtn->setEnabled(false);
-    m_endSessionBtn->setStyleSheet("background-color: #f44336; color: white; padding: 8px; border-radius: 4px;");
-    rightLayout->addWidget(m_endSessionBtn);
-    
-    rightLayout->addStretch();
-    mainLayout->addWidget(rightPanel);
+    m_operationPanel = new SeatOperationPanel(sessionSvc, orderSvc, this);
+
+    m_rightStack->addWidget(m_operationPanel); // Preview mode
+    m_rightStack->addWidget(m_inspector);      // Edit mode
+    mainLayout->addWidget(m_rightStack);
 
     // Connections
     connect(m_scene, &QGraphicsScene::selectionChanged, this, &FloorPlanPage::handleSceneSelectionChanged);
@@ -64,9 +42,24 @@ FloorPlanPage::FloorPlanPage(QWidget *parent) : QWidget(parent) {
     // FIXED: Use ObjectType instead of int
     connect(m_toolPalette, &ToolPalette::toolSelected, this, &FloorPlanPage::handleToolSelected);
     connect(m_toolPalette, &ToolPalette::selectModeRequested, this, &FloorPlanPage::handleSelectMode);
+    connect(m_toolPalette, &ToolPalette::editModeToggled, this, &FloorPlanPage::handleEditModeToggled);
     
-    connect(m_startSessionBtn, &QPushButton::clicked, this, &FloorPlanPage::handleStartSession);
-    connect(m_endSessionBtn, &QPushButton::clicked, this, &FloorPlanPage::handleEndSession);
+    connect(m_operationPanel, &SeatOperationPanel::startSessionRequested,
+            this, &FloorPlanPage::handleOperationStartSession);
+    connect(m_operationPanel, &SeatOperationPanel::endSessionRequested,
+            this, &FloorPlanPage::handleOperationEndSession);
+    connect(m_operationPanel, &SeatOperationPanel::checkoutRequested,
+            this, &FloorPlanPage::checkoutRequested);
+    connect(m_operationPanel, &SeatOperationPanel::addOrderRequested,
+            this, [this](int seatId) {
+                QList<QGraphicsItem*> selected = m_scene->selectedItems();
+                if (selected.isEmpty()) return;
+
+                SeatItem *seatItem = qobject_cast<SeatItem*>(dynamic_cast<FloorPlanItem*>(selected.first()));
+                if (seatItem) {
+                    emit addOrderRequested(seatId, seatItem->seatData().code);
+                }
+            });
 }
 
 void FloorPlanPage::initializeSeatMap(const std::vector<Seat> &seats) {
@@ -81,10 +74,7 @@ void FloorPlanPage::handleSceneSelectionChanged() {
     QList<QGraphicsItem*> selected = m_scene->selectedItems();
     if (selected.isEmpty()) {
         m_inspector->clearInspector();
-        m_selectedSeatLabel->setText("No seat selected");
-        m_startSessionBtn->setEnabled(false);
-        m_endSessionBtn->setEnabled(false);
-        m_currentSeatId = -1;
+        m_operationPanel->clearData();
         return;
     }
 
@@ -95,31 +85,12 @@ void FloorPlanPage::handleSceneSelectionChanged() {
         SeatItem *seatItem = qobject_cast<SeatItem*>(item);
         if (seatItem) {
             Seat seat = seatItem->seatData();
-            m_currentSeatId = seat.id;
-            m_selectedSeatLabel->setText(QString("Seat: %1 (%2)")
-                .arg(seat.code)
-                .arg(SeatStatusHelper::toString(seat.status)));
-            
-            // Enable/Disable buttons based on seat status
-            if (seat.status == SeatStatus::Available) {
-                m_startSessionBtn->setEnabled(true);
-                m_endSessionBtn->setEnabled(false);
-            } else if (seat.status == SeatStatus::Occupied) {
-                m_startSessionBtn->setEnabled(false);
-                m_endSessionBtn->setEnabled(true);
-            } else {
-                m_startSessionBtn->setEnabled(false);
-                m_endSessionBtn->setEnabled(false);
-            }
-            
+            m_operationPanel->loadSeatData(seat);
             // Emit signal for MainWindow
             emit seatSelected(seat);
         }
     } else {
-        m_selectedSeatLabel->setText("Environment Object");
-        m_startSessionBtn->setEnabled(false);
-        m_endSessionBtn->setEnabled(false);
-        m_currentSeatId = -1;
+        m_operationPanel->clearData();
     }
 }
 
@@ -131,14 +102,19 @@ void FloorPlanPage::handleSelectMode() {
     m_view->setSelectMode();
 }
 
-void FloorPlanPage::handleStartSession() {
-    if (m_currentSeatId != -1) {
-        emit startSessionRequested(m_currentSeatId);
-    }
+void FloorPlanPage::handleEditModeToggled(bool isEditMode) {
+    m_isEditMode = isEditMode;
+    m_view->setEditMode(isEditMode);
+    m_rightStack->setCurrentWidget(isEditMode ? static_cast<QWidget*>(m_inspector)
+                                              : static_cast<QWidget*>(m_operationPanel));
 }
 
-void FloorPlanPage::handleEndSession() {
-    if (m_currentSeatId != -1) {
-        emit endSessionRequested(m_currentSeatId);
-    }
+void FloorPlanPage::handleOperationStartSession(int seatId) {
+    emit startSessionRequested(seatId);
+    emit sessionChanged();
+}
+
+void FloorPlanPage::handleOperationEndSession(int seatId) {
+    emit endSessionRequested(seatId);
+    emit sessionChanged();
 }

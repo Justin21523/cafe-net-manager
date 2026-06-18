@@ -8,12 +8,20 @@ OrderService::OrderService(OrderRepository *repository)
     : m_repository(repository) {}
 
 void OrderService::addToCart(const MenuItem &item) {
+    addToCart(item, QString());
+}
+
+void OrderService::addToCart(const MenuItem &item, const QString &note) {
     if (m_cart.find(item.id) != m_cart.end()) {
         m_cart[item.id].quantity++;
+        if (!note.isEmpty()) {
+            m_cart[item.id].note = note;
+        }
     } else {
         CartItem cartItem;
         cartItem.menuItem = item;
         cartItem.quantity = 1;
+        cartItem.note = note;
         m_cart[item.id] = cartItem;
     }
     Logger::info("Added to cart: " + item.name);
@@ -77,6 +85,7 @@ bool OrderService::submitOrder(int seatId, int sessionId) {
         item.quantity = pair.second.quantity;
         item.unitPrice = pair.second.menuItem.price;
         item.subtotal = item.unitPrice * item.quantity;
+        item.note = pair.second.note; // NEW: Pass note to OrderItem
         orderItems.push_back(item);
     }
 
@@ -98,4 +107,8 @@ bool OrderService::updateOrderStatus(int orderId, OrderStatus status) {
 
 std::vector<Order> OrderService::getActiveOrders() {
     return m_repository->getAllActiveOrders();
+}
+
+std::vector<Order> OrderService::getOrdersBySeat(int seatId) {
+    return m_repository->getOrdersBySeatId(seatId);
 }
