@@ -1,7 +1,7 @@
 
 # CafeNet Manager ☕🖥️
 
-A comprehensive desktop management system for cafes and internet cafes, built with C++ and Qt 6.
+CafeNet Manager is a learning-focused desktop management system prototype for cafe seating, timed sessions, and floor-plan operations. It is built with C++17, Qt 6, SQLite, and CMake, and is currently used as a portfolio project for practicing desktop UI layout, data modeling, custom seat-map interaction, and operational workflow design.
 
 ![Version](https://img.shields.io/badge/version-1.0.0-blue.svg)
 ![License](https://img.shields.io/badge/license-MIT-green.svg)
@@ -12,9 +12,11 @@ A comprehensive desktop management system for cafes and internet cafes, built wi
 
 ![CafeNet Manager Main Dashboard](data/screenshot.png)
 
+The current screenshot shows the seat operations workspace with a live floor plan, status counters, edit-mode controls, and a seat inspector panel. This reflects the core direction of the project: model cafe seating and session operations as an interactive desktop workflow instead of a static table view.
+
 ## 🏆 Portfolio Significance & Outcomes
 
-This project demonstrates proficiency in building robust, performant desktop software using C++ and Qt:
+This project is presented as an in-progress learning project. It focuses on practical C++/Qt desktop software patterns:
 - **Interactive Custom Seat Editor**: Features a drag-and-drop interactive seat mapping system utilizing Qt Graphics View Framework / custom widgets to map, arrange, and manage physical assets in real-time.
 - **Complete Business Operations System**: Implements robust session management (minimum charges, hourly packages), order carts, and billing checkout systems with change calculations and receipt printing mockups.
 - **Kitchen Display System (KDS)**: Built with a card-based kanban board interface to visually track and update order preparation states (Pending, Preparing, Ready).
@@ -488,4 +490,3 @@ SOFTWARE.
 If you like this project, please ⭐ star this repository!
 
 ---
-
